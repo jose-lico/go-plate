@@ -6,8 +6,10 @@ import (
 	"net/http"
 
 	"go-plate/internal/config"
+	user "go-plate/services"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/cors"
 )
 
@@ -33,9 +35,20 @@ func (s *APIServer) Run() error {
 
 	router.Use(cors.Handler)
 
+	router.Use(middleware.RequestID)
+	router.Use(middleware.RealIP)
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+
 	router.Mount("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hello, World!")
 	}))
+
+	subRouter := chi.NewRouter()
+	router.Mount("/api", subRouter)
+
+	userService := user.NewService()
+	userService.RegisterRoutes(subRouter)
 
 	addr := ":" + s.cfg.Port
 	log.Printf("[TRACE] Starting api server on %s", addr)

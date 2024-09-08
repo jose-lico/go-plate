@@ -24,3 +24,4 @@ Copy `.env.example` to `.env` with your variables or otherwise inject them.
 
 - Uses chi router
 - Using docker for containerization
+- Version endpoints with URL or Headers
