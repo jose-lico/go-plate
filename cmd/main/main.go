@@ -1,14 +1,23 @@
 package main
 
 import (
-	"fmt"
+	"log"
+
 	"go-plate/internal/api"
+	"go-plate/internal/config"
 )
 
 func main() {
-	fmt.Println("Hello World")
+	cfg := config.NewAPIConfig()
 
-	server := api.NewAPIServer()
+	cfg.Host = "localhost"
+	cfg.Port = 8000
 
-	server.Run()
+	server := api.NewAPIServer(cfg)
+
+	err := server.Run()
+
+	if err != nil {
+		log.Panic(err)
+	}
 }
