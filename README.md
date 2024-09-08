@@ -1,6 +1,6 @@
 # go-plate
 
-Opinionated Go Backend Example
+Opinionated Go REST Backend Example
 
 Using `go 1.22.0`
 

@@ -11,7 +11,7 @@ func main() {
 	cfg, err := config.NewAPIConfig()
 
 	if err != nil {
-		log.Fatalf("Error loading API Config: %v", err)
+		log.Fatalf("[FATAL] Error loading API Config: %v", err)
 	}
 
 	server := api.NewAPIServer(cfg)
@@ -19,6 +19,6 @@ func main() {
 	err = server.Run()
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("[FATAL] Error launching server: %v", err)
 	}
 }
