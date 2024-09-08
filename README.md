@@ -9,3 +9,7 @@ Opinionated Go Backend Example
 `make run` -> go run
 
 `make build` -> go build
+
+---
+
+- Uses chi router
