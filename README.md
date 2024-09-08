@@ -20,6 +20,7 @@ Copy `.env.example` to `.env` with your variables or otherwise inject them.
 
 `make down` -> Spins down docker container(s) with docker-compose
 
----
+## Features
 
 - Uses chi router
+- Using docker for containerization
