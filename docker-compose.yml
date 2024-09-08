@@ -1,0 +1,10 @@
+services:
+  server:
+    container_name: server
+    build: 
+      context: .
+    environment:
+      - HOST=server
+      - PORT=8080
+    ports:
+      - "8081:8080"
