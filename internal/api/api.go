@@ -1,12 +1,12 @@
 package api
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
 	"go-plate/internal/config"
-	user "go-plate/services"
+	"go-plate/internal/database"
+	"go-plate/services/user"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -14,11 +14,12 @@ import (
 )
 
 type APIServer struct {
-	cfg *config.APIConfig
+	cfg   *config.APIConfig
+	redis database.RedisStore
 }
 
-func NewAPIServer(cfg *config.APIConfig) *APIServer {
-	return &APIServer{cfg: cfg}
+func NewAPIServer(cfg *config.APIConfig, redis database.RedisStore) *APIServer {
+	return &APIServer{cfg: cfg, redis: redis}
 }
 
 func (s *APIServer) Run() error {
@@ -40,17 +41,13 @@ func (s *APIServer) Run() error {
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 
-	router.Mount("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello, World!")
-	}))
-
 	subRouter := chi.NewRouter()
 	router.Mount("/api", subRouter)
 
-	userService := user.NewService()
+	userService := user.NewService(s.redis)
 	userService.RegisterRoutes(subRouter)
 
 	addr := ":" + s.cfg.Port
-	log.Printf("[TRACE] Starting api server on %s", addr)
+	log.Printf("[TRACE] Starting API server on %s", addr)
 	return http.ListenAndServe(addr, router)
 }

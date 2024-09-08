@@ -1,4 +1,11 @@
 services:
+  redis:
+    container_name: redis
+    image: redis:latest
+    ports:
+      - "6380:6379"
+    volumes:
+      - redisdata:/data
   server:
     container_name: server
     build: 
@@ -6,5 +13,22 @@ services:
     environment:
       - HOST=server
       - PORT=8080
+
+      - ALLOWED_ORIGINS=*
+      - ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS
+      - ALLOWED_HEADERS=Accept,Authorization,Content-Type,X-CSRF-Token
+      - EXPOSED_HEADERS=Link
+      - ALLOW_CREDENTIALS=true
+      - MAX_AGE=300
+
+      - RD_USE_TLS=false
+      - RD_HOST=redis
+      - RD_PORT=6379
+      - RD_PASSWORD=
     ports:
       - "8081:8080"
+    depends_on:
+      - redis
+
+volumes:
+  redisdata:
