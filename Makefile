@@ -1,8 +1,8 @@
 dev:
-	air
+	ENV=LOCAL air
 
 run:
-	go run ./cmd/main
+	ENV=LOCAL go run ./cmd/main
 
 build:
 	go build -o bin/main ./cmd/main

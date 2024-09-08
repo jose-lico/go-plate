@@ -8,16 +8,17 @@ import (
 )
 
 func main() {
-	cfg := config.NewAPIConfig()
+	cfg, err := config.NewAPIConfig()
 
-	cfg.Host = "localhost"
-	cfg.Port = 8000
+	if err != nil {
+		log.Fatalf("Error loading API Config: %v", err)
+	}
 
 	server := api.NewAPIServer(cfg)
 
-	err := server.Run()
+	err = server.Run()
 
 	if err != nil {
-		log.Panic(err)
+		log.Fatal(err)
 	}
 }

@@ -2,8 +2,10 @@ package api
 
 import (
 	"fmt"
-	"go-plate/internal/config"
+	"log"
 	"net/http"
+
+	"go-plate/internal/config"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -23,5 +25,7 @@ func (s *APIServer) Run() error {
 		fmt.Fprintf(w, "Hello, World!")
 	}))
 
-	return http.ListenAndServe(fmt.Sprintf("%s:%d", s.cfg.Host, s.cfg.Port), router)
+	addr := ":" + s.cfg.Port
+	log.Printf("Starting api server on %s", addr)
+	return http.ListenAndServe(addr, router)
 }
