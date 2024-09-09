@@ -49,7 +49,7 @@ func NewRedis(cfg *config.RedisConfig) (RedisStore, error) {
 			if attempts+1 < maxAttempts {
 				log.Printf("[ERROR] Failed to connect to Redis (attempt %d). Error: %v. Attempting again in %v...", attempts+1, err, reconnectCooldown)
 			} else {
-				log.Printf("[ERROR] Failed to connect to Redis (attempt %d). Error: %v.", attempts+1, err)
+				log.Printf("[ERROR] Failed to connect to Redis (attempt %d). Error: %v", attempts+1, err)
 			}
 			time.Sleep(reconnectCooldown)
 		} else {

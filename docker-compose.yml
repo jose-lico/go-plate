@@ -1,11 +1,4 @@
 services:
-  redis:
-    container_name: redis
-    image: redis:latest
-    ports:
-      - "6380:6379"
-    volumes:
-      - redisdata:/data
   server:
     container_name: server
     build: 
@@ -25,10 +18,40 @@ services:
       - RD_HOST=redis
       - RD_PORT=6379
       - RD_PASSWORD=
+
+      - SQL_SSL_MODE=disable
+      - SQL_SSL_CERT_PATH=
+      - SQL_HOST=postgres
+      - SQL_PORT=5432
+      - SQL_USER=postgres
+      - SQL_PASSWORD=password
+      - SQL_NAME=postgres
     ports:
       - "8081:8080"
     depends_on:
       - redis
+      - postgres
+  postgres:
+    container_name: postgres
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  redis:
+    container_name: redis
+    image: redis:latest
+    ports:
+      - "6380:6379"
+    volumes:
+      - redisdata:/data
 
 volumes:
   redisdata:
+  pgdata:
