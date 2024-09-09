@@ -20,8 +20,8 @@ type APIServer struct {
 	redis database.RedisStore
 }
 
-func NewAPIServer(cfg *config.APIConfig, redis database.RedisStore, sql *gorm.DB) *APIServer {
-	return &APIServer{cfg: cfg, redis: redis, sql: sql}
+func NewAPIServer(cfg *config.APIConfig, sql *gorm.DB, redis database.RedisStore) *APIServer {
+	return &APIServer{cfg: cfg, sql: sql, redis: redis}
 }
 
 func (s *APIServer) Run() error {
@@ -46,7 +46,8 @@ func (s *APIServer) Run() error {
 	subRouter := chi.NewRouter()
 	router.Mount("/api", subRouter)
 
-	userService := user.NewService(s.redis)
+	userStore := user.NewStore(s.sql)
+	userService := user.NewService(userStore, s.redis)
 	userService.RegisterRoutes(subRouter)
 
 	addr := ":" + s.cfg.Port

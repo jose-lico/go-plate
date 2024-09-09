@@ -2,22 +2,27 @@ package user
 
 import (
 	"fmt"
+	"log"
 	"net/http"
-	"time"
+	"strings"
 
 	"go-plate/internal/database"
 	"go-plate/internal/middleware"
+	"go-plate/internal/utils"
+	"go-plate/models"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/validator/v10"
 	"github.com/redis/go-redis/v9"
 )
 
 type Service struct {
+	store UserStore
 	redis database.RedisStore
 }
 
-func NewService(redis database.RedisStore) *Service {
-	return &Service{redis: redis}
+func NewService(store UserStore, redis database.RedisStore) *Service {
+	return &Service{store: store, redis: redis}
 }
 
 func (s *Service) RegisterRoutes(router chi.Router) {
@@ -34,16 +39,35 @@ func (s *Service) RegisterRoutes(router chi.Router) {
 	version1Router.Mount("/user", userRouter)
 	version2Router.Mount("/user", userRouter)
 
-	userRouter.Get("/{id}", s.getUser)
-	userRouter.Post("/{id}", s.createUser)
+	userRouter.Post("/register", s.createUser)
+	userRouter.Post("/login", s.getUser)
 }
 
 func (s *Service) createUser(w http.ResponseWriter, r *http.Request) {
-	duration := 24 * time.Hour
+	var user RegisterUserPayload
+	if err := utils.ParseJSON(r, &user); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
 
-	id := r.PathValue("id")
+	if err := utils.Validate.Struct(user); err != nil {
+		errors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid payload: %v", errors))
+		return
+	}
 
-	s.redis.Set(r.Context(), "user:"+id, id, duration)
+	// TODO: See if user already exists
+
+	_, err := s.store.CreateUser(&models.User{
+		Email:    strings.ToLower(user.Email),
+		Password: user.Password,
+	})
+
+	if err != nil {
+		log.Printf("[ERROR] Error creating user: %v", err)
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
 
 	w.WriteHeader(http.StatusCreated)
 }

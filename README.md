@@ -16,9 +16,9 @@ Something that allows me (and maybe you) to spin up a new project fast and be pr
 - [x] CORS management with [cors](https://github.com/rs/cors)
 - [x] Using Docker for containerization
 - [x] Endpoint versioning with URL or Headers (`/api/v1/user` or `X-API-Version: v1`)
-- [ ] Input validation with [validator](https://github.com/go-playground/validator)
-- [x] Connection to Redis cache using [go-redis](https://github.com/redis/go-redis)
+- [x] Input validation with [validator](https://github.com/go-playground/validator)
 - [x] ORM and connection to SQL (Postgres) using [gorm](https://github.com/go-gorm/gorm)
+- [x] Connection to Redis cache using [go-redis](https://github.com/redis/go-redis)
 - [ ] Auth functions & middleware to generate and compare hashes
 - [ ] JWT functions & middleware to generate and validate JWTs
 - [ ] Rate Limiting

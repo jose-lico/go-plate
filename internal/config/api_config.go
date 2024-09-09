@@ -3,6 +3,8 @@ package config
 import (
 	"os"
 	"strings"
+
+	"go-plate/internal/utils"
 )
 
 type APIConfig struct {
@@ -31,7 +33,7 @@ func NewAPIConfig() (*APIConfig, error) {
 		AllowedMethods:   strings.Split(os.Getenv("ALLOWED_METHODS"), ","),
 		AllowedHeaders:   strings.Split(os.Getenv("ALLOWED_HEADERS"), ","),
 		ExposedHeaders:   strings.Split(os.Getenv("EXPOSED_HEADERS"), ","),
-		AllowCredentials: getEnvAsBool("ALLOW_CREDENTIALS"),
-		MaxAge:           getEnvAsInt("MAX_AGE"),
+		AllowCredentials: utils.GetEnvAsBool("ALLOW_CREDENTIALS"),
+		MaxAge:           utils.GetEnvAsInt("MAX_AGE"),
 	}, nil
 }
