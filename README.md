@@ -2,7 +2,7 @@
 
 Opinionated Go REST Backend Boilerplate. Using `go 1.22.0`.
 
-As I've developed my Glassdoor [Compared](https://joselico.com/work/compared) clone and a few other smaller apps,
+As I've developed my Glassdoor clone [Compared](https://joselico.com/work/compared) and a few other smaller apps,
 I've tinkered around with Go a bit. I've tried quite a few different project structures and techniques, experimenting to find what works best for me.
 
 After all that trial and error, I decided to put together this Go backend boilerplate project.
