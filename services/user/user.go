@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"go-plate/internal/auth"
 	"go-plate/internal/database"
 	"go-plate/internal/middleware"
 	"go-plate/internal/utils"
@@ -13,7 +14,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
-	"github.com/redis/go-redis/v9"
 )
 
 type Service struct {
@@ -56,11 +56,21 @@ func (s *Service) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: See if user already exists
+	_, err := s.store.GetUserByEmail(user.Email)
+	if err == nil {
+		utils.WriteError(w, http.StatusConflict, fmt.Errorf("user with email %s already exists", user.Email))
+		return
+	}
 
-	_, err := s.store.CreateUser(&models.User{
+	hashedPassword, err := auth.HashPassword(user.Password)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	_, err = s.store.CreateUser(&models.User{
 		Email:    strings.ToLower(user.Email),
-		Password: user.Password,
+		Password: hashedPassword,
 	})
 
 	if err != nil {
@@ -73,22 +83,28 @@ func (s *Service) createUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) getUser(w http.ResponseWriter, r *http.Request) {
-	idURL := r.PathValue("id")
-	id, err := s.redis.Get(r.Context(), "user:"+idURL)
-
-	if err == redis.Nil {
-		w.WriteHeader(http.StatusNotFound)
-		fmt.Fprintf(w, "No user with ID %s", idURL)
-		return
-	} else if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+	var user LoginUserPayload
+	if err := utils.ParseJSON(r, &user); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
-	version := r.Context().Value(middleware.Version).(string)
-	if version == "v1" {
-		fmt.Fprintf(w, "This is a user in v1. ID %s", id)
-	} else if version == "v2" {
-		fmt.Fprintf(w, "This is a user in v2. ID %s", id)
+	if err := utils.Validate.Struct(user); err != nil {
+		errors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid payload: %v", errors))
+		return
 	}
+
+	u, err := s.store.GetUserByEmail(user.Email)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	if !auth.ComparePasswords(u.Password, []byte(user.Password)) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
