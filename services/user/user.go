@@ -1,10 +1,12 @@
 package user
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"go-plate/internal/auth"
 	"go-plate/internal/database"
@@ -41,6 +43,21 @@ func (s *Service) RegisterRoutes(router chi.Router) {
 
 	userRouter.Post("/register", s.createUser)
 	userRouter.Post("/login", s.getUser)
+
+	userRouter.Group(func(r chi.Router) {
+		r.Use(middleware.AuthMiddleware(s.redis))
+		r.Get("/secret", func(w http.ResponseWriter, r *http.Request) {
+
+			isAuthenticated, _ := r.Context().Value(middleware.IsAuthenticated).(bool)
+
+			if isAuthenticated {
+				session := r.Context().Value(middleware.SessionInfo).(middleware.Session)
+				w.Write([]byte(fmt.Sprintf("this is a secret from user %d", session.UserID)))
+			} else {
+				w.Write([]byte("You will never get this lalalala"))
+			}
+		})
+	})
 }
 
 func (s *Service) createUser(w http.ResponseWriter, r *http.Request) {
@@ -68,7 +85,7 @@ func (s *Service) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = s.store.CreateUser(&models.User{
+	u, err := s.store.CreateUser(&models.User{
 		Email:    strings.ToLower(user.Email),
 		Password: hashedPassword,
 	})
@@ -79,7 +96,7 @@ func (s *Service) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	s.generateSession(w, r, u, http.StatusOK)
 }
 
 func (s *Service) getUser(w http.ResponseWriter, r *http.Request) {
@@ -106,5 +123,44 @@ func (s *Service) getUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	s.generateSession(w, r, u, http.StatusOK)
+}
+
+func (s *Service) generateSession(w http.ResponseWriter, r *http.Request, u *models.User, status int) {
+	sessionToken, err := auth.GenerateToken()
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("could not generate session token"))
+	}
+
+	duration := 24 * time.Hour
+	expires := time.Now().Add(duration)
+
+	session := &middleware.Session{
+		UserID:       int(u.ID),
+		Expiration:   expires,
+		CreatedAt:    time.Now(),
+		LastAccessed: time.Now(),
+		UserAgent:    r.Header.Get("User-Agent"),
+	}
+
+	marshalled, err := json.Marshal(session)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("failed to marshall session struct"))
+		return
+	}
+
+	s.redis.Set(r.Context(), "session:"+sessionToken, marshalled, duration)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session",
+		Value:    sessionToken,
+		Path:     "/",
+		Expires:  expires,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+		Domain:   "",
+	})
+
+	w.WriteHeader(status)
 }

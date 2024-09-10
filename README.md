@@ -11,11 +11,11 @@ Something that allows me (and maybe you) to spin up a new project fast and be pr
 
 ## Overview & Features
 
-- [x] Using [chi](https://github.com/go-chi/chi) router (Lightweight, 100% compatible with net/http)
-- [x] Loading local .env variables with [godotenv](https://github.com/joho/godotenv)
-- [x] CORS management with [cors](https://github.com/rs/cors)
+- [x] Routing with [chi](https://github.com/go-chi/chi) (Lightweight, 100% compatible with net/http)
+- [x] Environment variable management using [godotenv](https://github.com/joho/godotenv)
+- [x] CORS handling with [cors](https://github.com/rs/cors)
 - [x] Using Docker for containerization
-- [x] Endpoint versioning with URL or Headers (`/api/v1/user` or `X-API-Version: v1`)
+- [x] API versioning via URL paths (`/api/v1/user`) and custom headers (`X-API-Version: v1`)
 - [x] Input validation with [validator](https://github.com/go-playground/validator)
 - [x] ORM and connection to SQL (Postgres) using [gorm](https://github.com/go-gorm/gorm)
 - [x] Connection to Redis cache using [go-redis](https://github.com/redis/go-redis)
