@@ -14,13 +14,14 @@ Something that allows me (and maybe you) to spin up a new project fast and be pr
 - [x] Routing with [chi](https://github.com/go-chi/chi) (Lightweight, 100% compatible with net/http)
 - [x] Environment variable management using [godotenv](https://github.com/joho/godotenv)
 - [x] CORS handling with [cors](https://github.com/rs/cors)
-- [x] Using Docker for containerization
+- [x] Containerization with Docker
 - [x] API versioning via URL paths (`/api/v1/user`) and custom headers (`X-API-Version: v1`)
-- [x] Input validation with [validator](https://github.com/go-playground/validator)
-- [x] ORM and connection to SQL (Postgres) using [gorm](https://github.com/go-gorm/gorm)
-- [x] Connection to Redis cache using [go-redis](https://github.com/redis/go-redis)
-- [ ] Auth functions & middleware to generate and compare hashes
-- [ ] JWT functions & middleware to generate and validate JWTs
+- [x] Request payload validation using [validator](https://github.com/go-playground/validator)
+- [x] SQL (PostgreSQL) integration with [gorm](https://github.com/go-gorm/gorm) orm
+- [x] Redis caching implementation with [go-redis](https://github.com/redis/go-redis)
+- [x] Secure password hashing and verification
+- [x] Authentication middleware with session management (Redis-backed)
+- [ ] JWT generation and validation middleware
 - [ ] Rate Limiting
 - [ ] CI/CD pipeline for GCP services
 - [ ] CI/CD pipeline for AWS services
