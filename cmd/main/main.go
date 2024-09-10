@@ -23,7 +23,7 @@ func main() {
 	}
 
 	// Setup sql
-	sqlCFG, err := config.NewSQLGormConfig()
+	sqlCFG, err := config.NewSQLConfig()
 
 	if err != nil {
 		log.Fatalf("[FATAL] Error loading SQL Config: %v", err)

@@ -17,7 +17,8 @@ Something that allows me (and maybe you) to spin up a new project fast and be pr
 - [x] Containerization with Docker
 - [x] API versioning via URL paths (`/api/v1/user`) and custom headers (`X-API-Version: v1`)
 - [x] Request payload validation using [validator](https://github.com/go-playground/validator)
-- [x] SQL (PostgreSQL) integration with [gorm](https://github.com/go-gorm/gorm) orm
+- [x] SQL (PostgreSQL) integration with [gorm](https://github.com/go-gorm/gorm) ORM
+- [x] Database schema management with [migrate](https://github.com/golang-migrate/migrate) for version-controlled and reproducible migrations
 - [x] Redis caching implementation with [go-redis](https://github.com/redis/go-redis)
 - [x] Secure password hashing and verification
 - [x] Authentication middleware with session management (Redis-backed)

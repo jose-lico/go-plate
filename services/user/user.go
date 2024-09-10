@@ -2,6 +2,7 @@ package user
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
+	"gorm.io/gorm"
 )
 
 type Service struct {
@@ -52,8 +54,24 @@ func (s *Service) RegisterRoutes(router chi.Router) {
 
 			if isAuthenticated {
 				session := r.Context().Value(middleware.SessionInfo).(middleware.Session)
-				w.Write([]byte(fmt.Sprintf("this is a secret from user %d", session.UserID)))
+
+				id := session.UserID
+
+				_, err := s.store.GetUserByID(id)
+
+				if err != nil {
+					if errors.Is(err, gorm.ErrRecordNotFound) {
+						w.WriteHeader(http.StatusForbidden)
+						// TODO: Delete cookie and redis entry
+					} else {
+						log.Printf("[ERROR] Error retrieving user: %v\n", err)
+						w.WriteHeader(http.StatusInternalServerError)
+					}
+				} else {
+					w.Write([]byte(fmt.Sprintf("this is a secret from user %d", session.UserID)))
+				}
 			} else {
+				w.WriteHeader(http.StatusForbidden)
 				w.Write([]byte("You will never get this lalalala"))
 			}
 		})

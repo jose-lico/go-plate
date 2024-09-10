@@ -15,7 +15,7 @@ type SQLGormConfig struct {
 	DatabaseName string
 }
 
-func NewSQLGormConfig() (*SQLGormConfig, error) {
+func NewSQLConfig() (*SQLGormConfig, error) {
 	return &SQLGormConfig{
 		SSLMode:      os.Getenv("SQL_SSL_MODE"),
 		SSLCertPath:  os.Getenv("SQL_SSL_CERT_PATH"),
