@@ -61,14 +61,27 @@ func (s *Service) RegisterRoutes(router chi.Router) {
 
 				if err != nil {
 					if errors.Is(err, gorm.ErrRecordNotFound) {
-						w.WriteHeader(http.StatusForbidden)
-						// TODO: Delete cookie and redis entry
+						s.redis.Del(r.Context(), r.Context().Value(middleware.Token).(string))
+
+						http.SetCookie(w, &http.Cookie{
+							Name:     "session",
+							Value:    "",
+							Path:     "/",
+							Expires:  time.Unix(0, 0),
+							MaxAge:   -1,
+							HttpOnly: true,
+							Secure:   true,
+							SameSite: http.SameSiteStrictMode,
+							Domain:   "",
+						})
+
+						w.WriteHeader(http.StatusUnauthorized)
 					} else {
 						log.Printf("[ERROR] Error retrieving user: %v\n", err)
 						w.WriteHeader(http.StatusInternalServerError)
 					}
 				} else {
-					w.Write([]byte(fmt.Sprintf("this is a secret from user %d", session.UserID)))
+					w.Write([]byte(fmt.Sprintf("This is a secret from user %d", session.UserID)))
 				}
 			} else {
 				w.WriteHeader(http.StatusForbidden)

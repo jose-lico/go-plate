@@ -10,7 +10,7 @@ import (
 	"go-plate/internal/database"
 	"go-plate/internal/utils"
 
-	"github.com/redis/go-redis/v9"
+	go_redis "github.com/redis/go-redis/v9"
 )
 
 type contextKey string
@@ -28,16 +28,16 @@ type Session struct {
 	UserAgent    string    `json:"user_agent,omitempty"`
 }
 
-func AuthMiddleware(rdb database.RedisStore) func(next http.Handler) http.Handler {
+func AuthMiddleware(redis database.RedisStore) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := context.WithValue(r.Context(), IsAuthenticated, false)
 
 			cookie, err := r.Cookie("session")
-			if err == nil && cookie.Value != "" {
+			if err == nil {
 				sessionToken := cookie.Value
 
-				sessionJSON, err := rdb.Get(r.Context(), "session:"+sessionToken)
+				sessionJSON, err := redis.Get(r.Context(), "session:"+sessionToken)
 				if err == nil {
 					var session Session
 					err := json.Unmarshal([]byte(sessionJSON), &session)
@@ -50,7 +50,7 @@ func AuthMiddleware(rdb database.RedisStore) func(next http.Handler) http.Handle
 					ctx = context.WithValue(ctx, Token, "session:"+sessionToken)
 					ctx = context.WithValue(ctx, IsAuthenticated, true)
 					ctx = context.WithValue(ctx, SessionInfo, session)
-				} else if err == redis.Nil {
+				} else if err == go_redis.Nil {
 					http.SetCookie(w, &http.Cookie{
 						Name:     "session",
 						Value:    "",
@@ -60,15 +60,14 @@ func AuthMiddleware(rdb database.RedisStore) func(next http.Handler) http.Handle
 						HttpOnly: true,
 						Secure:   true,
 						SameSite: http.SameSiteStrictMode,
-						Domain:   ".compared.pt",
+						Domain:   "",
 					})
 				} else {
 					utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to read session from cache"))
 					return
 				}
 			} else {
-				utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to read cookie"))
-				return
+				w.WriteHeader(http.StatusUnauthorized)
 			}
 
 			next.ServeHTTP(w, r.WithContext(ctx))
@@ -76,16 +75,16 @@ func AuthMiddleware(rdb database.RedisStore) func(next http.Handler) http.Handle
 	}
 }
 
-func AuthMiddlewareBlocking(rdb database.RedisStore) func(next http.Handler) http.Handler {
+func AuthMiddlewareBlocking(redis database.RedisStore) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 
 			cookie, err := r.Cookie("session")
-			if err == nil && cookie.Value != "" {
+			if err == nil {
 				sessionToken := cookie.Value
 
-				sessionJSON, err := rdb.Get(r.Context(), "session:"+sessionToken)
+				sessionJSON, err := redis.Get(r.Context(), "session:"+sessionToken)
 				if err == nil {
 					var session Session
 					err := json.Unmarshal([]byte(sessionJSON), &session)
@@ -100,7 +99,7 @@ func AuthMiddlewareBlocking(rdb database.RedisStore) func(next http.Handler) htt
 					ctx = context.WithValue(ctx, SessionInfo, session)
 					next.ServeHTTP(w, r.WithContext(ctx))
 					return
-				} else if err == redis.Nil {
+				} else if err == go_redis.Nil {
 					http.SetCookie(w, &http.Cookie{
 						Name:     "session",
 						Value:    "",
@@ -110,7 +109,7 @@ func AuthMiddlewareBlocking(rdb database.RedisStore) func(next http.Handler) htt
 						HttpOnly: true,
 						Secure:   true,
 						SameSite: http.SameSiteStrictMode,
-						Domain:   ".compared.pt",
+						Domain:   "",
 					})
 				} else {
 					utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to read session from cache"))
@@ -118,7 +117,7 @@ func AuthMiddlewareBlocking(rdb database.RedisStore) func(next http.Handler) htt
 				}
 			}
 
-			http.Error(w, "No session token", http.StatusUnauthorized)
+			w.WriteHeader(http.StatusUnauthorized)
 		})
 	}
 }
