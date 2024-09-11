@@ -51,6 +51,22 @@ services:
       - "6380:6379"
     volumes:
       - redisdata:/data
+  migrate:
+    container_name: migrate
+    profiles: ["migrate"]
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
+    environment:
+      - SQL_SSL_MODE=disable
+      - SQL_SSL_CERT_PATH=
+      - SQL_HOST=postgres
+      - SQL_PORT=5432
+      - SQL_USER=postgres
+      - SQL_PASSWORD=password
+      - SQL_NAME=postgres
+    depends_on:
+      - postgres
 
 volumes:
   redisdata:

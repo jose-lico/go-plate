@@ -127,7 +127,7 @@ func (s *Service) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.generateSession(w, r, u, http.StatusOK)
+	s.generateSession(w, r, u, http.StatusCreated)
 }
 
 func (s *Service) getUser(w http.ResponseWriter, r *http.Request) {

@@ -15,12 +15,13 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("Please specify 'up' or 'down' as a command argument")
+	if len(os.Args) < 3 {
+		fmt.Println("Please specify 'up' or 'down' as a command argument and path to migrations.")
 		return
 	}
 
 	direction := os.Args[1]
+	migrationsPath := os.Args[2]
 
 	env := os.Getenv("ENV")
 
@@ -58,7 +59,7 @@ func main() {
 		log.Fatalf("Could not create database driver: %v\n", err)
 	}
 
-	migrationPath := "file://cmd/migrate/migrations"
+	migrationPath := "file://" + migrationsPath
 
 	m, err := migrate.NewWithDatabaseInstance(migrationPath, "postgres", driver)
 	if err != nil {

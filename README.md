@@ -55,8 +55,16 @@ At the root of the project is a Makefile with some util commands to help develop
 
 **Migrations**
 
+Local
+
 `make migration name=<migration_name>` -> Create a new migration
 
 `make migrate-up` -> Runs up migrations
 
 `make migrate-down` -> Runs down migrations
+
+Docker
+
+`migrate-up-docker` -> Runs up migrations
+
+`migrate-down-docker` -> Runs down migrations
