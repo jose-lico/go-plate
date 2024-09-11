@@ -37,7 +37,7 @@ For docker, a sample `docker-compose.yml` is at the root with these variables.
 
 At the root of the project is a Makefile with some util commands to help development.
 
-**Go commands**
+### Go commands
 
 `make dev` -> go run with live reload thru [air](https://github.com/air-verse/air)
 
@@ -45,7 +45,7 @@ At the root of the project is a Makefile with some util commands to help develop
 
 `make build` -> go build
 
-**Docker commands**
+### Docker commands
 
 `make up` -> Spins up docker container(s) with docker-compose
 
@@ -53,9 +53,9 @@ At the root of the project is a Makefile with some util commands to help develop
 
 `make down -v` -> Spins down docker container(s) and volume(s) with docker-compose
 
-**Migrations**
+### Migrations
 
-Local
+**Local**
 
 `make migration name=<migration_name>` -> Create a new migration
 
@@ -63,7 +63,7 @@ Local
 
 `make migrate-down` -> Runs down migrations
 
-Docker
+**Docker**
 
 `migrate-up-docker` -> Runs up migrations
 
