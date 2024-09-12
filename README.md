@@ -15,7 +15,7 @@ Something that allows me (and maybe you) to spin up a new project fast and be pr
 - [x] Environment variable management using [godotenv](https://github.com/joho/godotenv)
 - [x] CORS handling with [cors](https://github.com/rs/cors)
 - [x] Containerization with Docker
-- [x] API versioning via URL paths (`/api/v1/user`) and custom headers (`X-API-Version: v1`)
+- [x] API versioning via URL paths (`/api/v2/posts`) and custom headers (`X-API-Version: v1`)
 - [x] Request payload validation using [validator](https://github.com/go-playground/validator)
 - [x] SQL (PostgreSQL) integration with [gorm](https://github.com/go-gorm/gorm) ORM
 - [x] Database schema management with [migrate](https://github.com/golang-migrate/migrate) for version-controlled and reproducible migrations
@@ -27,7 +27,7 @@ Something that allows me (and maybe you) to spin up a new project fast and be pr
 - [ ] CI/CD pipeline for GCP services
 - [ ] CI/CD pipeline for AWS services
 - [ ] OAuth (Google)
-- [ ] Some example endpoints and tests
+- [x] Example endpoints to showcase functionality and use
 - [ ] Documentation generation with [Swagger](https://swagger.io/)
 
 ## How to use
