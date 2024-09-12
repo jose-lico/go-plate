@@ -27,26 +27,23 @@ func NewService(store UserStore, redis database.RedisStore) *Service {
 	return &Service{store: store, redis: redis}
 }
 
-func (s *Service) RegisterRoutes(router chi.Router) {
-	version1Router := chi.NewRouter()
-	version2Router := chi.NewRouter()
-
-	version1Router.Use(middleware.VersionURLMiddleware("v1"))
-	version2Router.Use(middleware.VersionURLMiddleware("v2"))
-
-	router.Mount("/v1", version1Router)
-	router.Mount("/v2", version2Router)
-
+func (s *Service) RegisterRoutes(v1 chi.Router) {
 	userRouter := chi.NewRouter()
-	version1Router.Mount("/users", userRouter)
-	version2Router.Mount("/users", userRouter)
+	v1.Mount("/users", userRouter)
 
 	userRouter.Post("/register", s.createUser)
 	userRouter.Post("/login", s.getUser)
 
 	userRouter.Group(func(r chi.Router) {
 		r.Use(middleware.SessionMiddleware(s.redis))
+
+		/*
+			Validating the user in the DB defies the purpose of using a cache like
+			redis for session management, ideally the session in the redis cache would be
+			invalidated correctly if the user was for example, banned.
+		*/
 		r.Use(ValidateUserMiddleware(s.store, s.redis))
+
 		r.Get("/secret", func(w http.ResponseWriter, r *http.Request) {
 
 			isValidated := r.Context().Value(IsValidated).(bool)

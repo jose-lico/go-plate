@@ -18,6 +18,8 @@ const (
 type RedisStore interface {
 	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error
 	Get(ctx context.Context, key string) (string, error)
+	SAdd(ctx context.Context, key string, value interface{}) error
+	SRem(ctx context.Context, key string, value interface{}) error
 	Del(ctx context.Context, key string) (int64, error)
 }
 
@@ -67,6 +69,14 @@ func (r *Redis) Set(ctx context.Context, key string, value interface{}, expirati
 
 func (r *Redis) Get(ctx context.Context, key string) (string, error) {
 	return r.rdb.Get(ctx, key).Result()
+}
+
+func (r *Redis) SAdd(ctx context.Context, key string, value interface{}) error {
+	return r.rdb.SAdd(ctx, key, value).Err()
+}
+
+func (r *Redis) SRem(ctx context.Context, key string, value interface{}) error {
+	return r.rdb.SRem(ctx, key, value).Err()
 }
 
 func (r *Redis) Del(ctx context.Context, key string) (int64, error) {

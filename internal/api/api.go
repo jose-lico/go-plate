@@ -6,10 +6,12 @@ import (
 
 	"go-plate/internal/config"
 	"go-plate/internal/database"
+	"go-plate/internal/middleware"
+	"go-plate/services/post"
 	"go-plate/services/user"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	chi_middleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/cors"
 	"gorm.io/gorm"
 )
@@ -38,17 +40,28 @@ func (s *APIServer) Run() error {
 
 	router.Use(cors.Handler)
 
-	router.Use(middleware.RequestID)
-	router.Use(middleware.RealIP)
-	router.Use(middleware.Logger)
-	router.Use(middleware.Recoverer)
+	router.Use(chi_middleware.RequestID)
+	router.Use(chi_middleware.RealIP)
+	router.Use(chi_middleware.Logger)
+	router.Use(chi_middleware.Recoverer)
 
 	subRouter := chi.NewRouter()
 	router.Mount("/api", subRouter)
 
+	v1Router := chi.NewRouter()
+	v2Router := chi.NewRouter()
+	subRouter.Mount("/v1", v1Router)
+	subRouter.Mount("/v2", v2Router)
+	v1Router.Use(middleware.VersionURLMiddleware("v1"))
+	v2Router.Use(middleware.VersionURLMiddleware("v2"))
+
 	userStore := user.NewStore(s.sql)
 	userService := user.NewService(userStore, s.redis)
-	userService.RegisterRoutes(subRouter)
+	userService.RegisterRoutes(v1Router)
+
+	postStore := post.NewStore(s.sql)
+	postServer := post.NewService(postStore, s.redis)
+	postServer.RegisterRoutes(v1Router, v2Router)
 
 	addr := ":" + s.cfg.Port
 	log.Printf("[TRACE] Starting API server on %s", addr)
