@@ -2,7 +2,6 @@ package user
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,7 +16,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
-	"gorm.io/gorm"
 )
 
 type Service struct {
@@ -40,52 +38,24 @@ func (s *Service) RegisterRoutes(router chi.Router) {
 	router.Mount("/v2", version2Router)
 
 	userRouter := chi.NewRouter()
-	version1Router.Mount("/user", userRouter)
-	version2Router.Mount("/user", userRouter)
+	version1Router.Mount("/users", userRouter)
+	version2Router.Mount("/users", userRouter)
 
 	userRouter.Post("/register", s.createUser)
 	userRouter.Post("/login", s.getUser)
 
 	userRouter.Group(func(r chi.Router) {
-		r.Use(middleware.AuthMiddleware(s.redis))
+		r.Use(middleware.SessionMiddleware(s.redis))
+		r.Use(ValidateUserMiddleware(s.store, s.redis))
 		r.Get("/secret", func(w http.ResponseWriter, r *http.Request) {
 
-			isAuthenticated, _ := r.Context().Value(middleware.IsAuthenticated).(bool)
+			isValidated := r.Context().Value(IsValidated).(bool)
 
-			if isAuthenticated {
-				session := r.Context().Value(middleware.SessionInfo).(middleware.Session)
-
-				id := session.UserID
-
-				_, err := s.store.GetUserByID(id)
-
-				if err != nil {
-					if errors.Is(err, gorm.ErrRecordNotFound) {
-						s.redis.Del(r.Context(), r.Context().Value(middleware.Token).(string))
-
-						http.SetCookie(w, &http.Cookie{
-							Name:     "session",
-							Value:    "",
-							Path:     "/",
-							Expires:  time.Unix(0, 0),
-							MaxAge:   -1,
-							HttpOnly: true,
-							Secure:   true,
-							SameSite: http.SameSiteStrictMode,
-							Domain:   "",
-						})
-
-						w.WriteHeader(http.StatusUnauthorized)
-					} else {
-						log.Printf("[ERROR] Error retrieving user: %v\n", err)
-						w.WriteHeader(http.StatusInternalServerError)
-					}
-				} else {
-					w.Write([]byte(fmt.Sprintf("This is a secret from user %d", session.UserID)))
-				}
+			if isValidated {
+				user := r.Context().Value(User).(*models.User)
+				w.Write([]byte(fmt.Sprintf("This is a secret from user %d.", user.ID)))
 			} else {
-				w.WriteHeader(http.StatusForbidden)
-				w.Write([]byte("You will never get this lalalala"))
+				w.Write([]byte("You will never get this lalalala."))
 			}
 		})
 	})

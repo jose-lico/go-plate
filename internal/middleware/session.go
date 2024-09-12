@@ -28,7 +28,7 @@ type Session struct {
 	UserAgent    string    `json:"user_agent,omitempty"`
 }
 
-func AuthMiddleware(redis database.RedisStore) func(next http.Handler) http.Handler {
+func SessionMiddleware(redis database.RedisStore) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := context.WithValue(r.Context(), IsAuthenticated, false)
@@ -75,7 +75,7 @@ func AuthMiddleware(redis database.RedisStore) func(next http.Handler) http.Hand
 	}
 }
 
-func AuthMiddlewareBlocking(redis database.RedisStore) func(next http.Handler) http.Handler {
+func SessionMiddlewareBlocking(redis database.RedisStore) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
