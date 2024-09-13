@@ -1,0 +1,47 @@
+name: Deploy to Cloud Run
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Google Auth
+        id: auth
+        uses: "google-github-actions/auth@v2"
+        with:
+          token_format: "access_token"
+          workload_identity_provider: "${{ secrets.WIF_PROVIDER }}"
+          service_account: "${{ secrets.WIF_SERVICE_ACCOUNT }}"
+
+      - name: Docker Auth
+        id: docker-auth
+        uses: "docker/login-action@v3"
+        with:
+          username: "oauth2accesstoken"
+          password: "${{ steps.auth.outputs.access_token }}"
+          registry: "${{ vars.AR_REPO_REGION }}-docker.pkg.dev"
+
+      - name: Build and Push Container
+        run: |-
+          docker build -t "${{ vars.AR_REPO_REGION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ vars.AR_REPO_NAME }}/go_${{ github.sha }}" . .
+          docker push "${{ vars.AR_REPO_REGION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ vars.AR_REPO_NAME }}/go_${{ github.sha }}"
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ vars.CR_SERVICE_NAME }}
+          region: ${{ vars.CR_SERVICE_REGION }}
+          image: ${{ vars.AR_REPO_REGION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ vars.AR_REPO_NAME }}/go_${{ github.sha }}
+
+      - name: Show Output
+        run: echo ${{ steps.deploy.outputs.url }}
