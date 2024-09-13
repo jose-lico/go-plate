@@ -1,2 +1,2 @@
 ALTER TABLE posts
-DROP COLUMN summary VARCHAR(255);
+DROP COLUMN summary;

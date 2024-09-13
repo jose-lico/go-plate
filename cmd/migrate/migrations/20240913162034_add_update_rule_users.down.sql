@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS update_user_modtime ON users;

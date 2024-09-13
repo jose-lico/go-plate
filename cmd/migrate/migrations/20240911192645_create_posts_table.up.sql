@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS posts (
     deleted_at TIMESTAMP WITH TIME ZONE,
 
     title VARCHAR(255) NOT NULL,
-    content TEXT(1000) NOT NULL,
+    content VARCHAR(1000) NOT NULL,
     user_id INTEGER NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
