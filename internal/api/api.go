@@ -57,11 +57,11 @@ func (s *APIServer) Run() error {
 
 	userStore := user.NewStore(s.sql)
 	userService := user.NewService(userStore, s.redis)
-	userService.RegisterRoutes(v1Router)
+	userRouter := userService.RegisterRoutes(v1Router)
 
 	postStore := post.NewStore(s.sql)
 	postServer := post.NewService(postStore, s.redis)
-	postServer.RegisterRoutes(v1Router, v2Router)
+	postServer.RegisterRoutes(v1Router, v2Router, userRouter)
 
 	addr := ":" + s.cfg.Port
 	log.Printf("[TRACE] Starting API server on %s", addr)

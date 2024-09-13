@@ -66,8 +66,6 @@ func SessionMiddleware(redis database.RedisStore) func(next http.Handler) http.H
 					utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to read session from cache"))
 					return
 				}
-			} else {
-				w.WriteHeader(http.StatusUnauthorized)
 			}
 
 			next.ServeHTTP(w, r.WithContext(ctx))

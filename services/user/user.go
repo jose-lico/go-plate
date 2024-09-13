@@ -27,7 +27,7 @@ func NewService(store UserStore, redis database.RedisStore) *Service {
 	return &Service{store: store, redis: redis}
 }
 
-func (s *Service) RegisterRoutes(v1 chi.Router) {
+func (s *Service) RegisterRoutes(v1 chi.Router) chi.Router {
 	userRouter := chi.NewRouter()
 	v1.Mount("/users", userRouter)
 
@@ -52,10 +52,13 @@ func (s *Service) RegisterRoutes(v1 chi.Router) {
 				user := r.Context().Value(User).(*models.User)
 				w.Write([]byte(fmt.Sprintf("This is a secret from user %d.", user.ID)))
 			} else {
+				w.WriteHeader(http.StatusUnauthorized)
 				w.Write([]byte("You will never get this lalalala."))
 			}
 		})
 	})
+
+	return userRouter
 }
 
 func (s *Service) createUser(w http.ResponseWriter, r *http.Request) {
