@@ -32,6 +32,7 @@ func (s *Service) RegisterRoutes(v1 chi.Router, v2 chi.Router, userRouter chi.Ro
 	postRouter.Group(func(r chi.Router) {
 		r.Use(middleware.SessionMiddleware(s.redis))
 		r.Post("/", s.createPost)
+		r.Patch("/{id}", s.updatePost)
 		r.Delete("/{id}", s.deletePost)
 
 		// `/posts/user/1` returns same as `/users/1/posts`
@@ -41,6 +42,7 @@ func (s *Service) RegisterRoutes(v1 chi.Router, v2 chi.Router, userRouter chi.Ro
 	v2.Mount("/users", userRouter)
 	userRouter.Group(func(r chi.Router) {
 		r.Use(middleware.SessionMiddleware(s.redis))
+
 		// `/users/1/posts` returns same as `/posts/user/1`
 		// I prefer this one
 		r.Get("/{id}/posts", s.getPosts)
@@ -86,6 +88,61 @@ func (s *Service) createPost(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusCreated)
+	} else {
+		w.WriteHeader(http.StatusUnauthorized)
+	}
+}
+
+func (s *Service) updatePost(w http.ResponseWriter, r *http.Request) {
+	isAuthenticated := r.Context().Value(middleware.IsAuthenticated).(bool)
+
+	if isAuthenticated {
+		var update EditPostPayload
+		if err := utils.ParseJSON(r, &update); err != nil {
+			utils.WriteError(w, http.StatusBadRequest, err)
+			return
+		}
+
+		if err := utils.Validate.Struct(update); err != nil {
+			errors := err.(validator.ValidationErrors)
+			utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid payload: %v", errors))
+			return
+		}
+
+		postID := r.PathValue("id")
+		postIDAsInt, err := strconv.Atoi(postID)
+
+		if err != nil {
+			utils.WriteError(w, http.StatusInternalServerError, err)
+			return
+		}
+
+		post, err := s.store.GetPostByID(postIDAsInt)
+
+		if err == ErrPostNotFound {
+			utils.WriteError(w, http.StatusNotFound, err)
+			return
+		} else if err != nil {
+			utils.WriteError(w, http.StatusInternalServerError, err)
+			return
+		}
+
+		session := r.Context().Value(middleware.SessionInfo).(middleware.Session)
+		userID := session.UserID
+
+		if post.UserID != uint(userID) {
+			utils.WriteError(w, http.StatusForbidden, ErrUserNotAuthorized)
+			return
+		}
+
+		err = s.store.UpdatePost(post, update)
+
+		if err != nil {
+			utils.WriteError(w, http.StatusInternalServerError, err)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
 	}

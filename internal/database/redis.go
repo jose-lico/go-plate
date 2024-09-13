@@ -3,9 +3,10 @@ package database
 import (
 	"context"
 	"fmt"
-	"go-plate/internal/config"
 	"log"
 	"time"
+
+	"go-plate/internal/config"
 
 	"github.com/redis/go-redis/v9"
 )

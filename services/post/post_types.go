@@ -19,6 +19,10 @@ type PostResponsePayload struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+type EditPostPayload struct {
+	Content string `json:"content" validate:"required,max=1000"`
+}
+
 func ModelToResponsePayload(p *models.Post) PostResponsePayload {
 	return PostResponsePayload{
 		Title:     p.Title,

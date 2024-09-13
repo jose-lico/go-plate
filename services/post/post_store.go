@@ -11,13 +11,14 @@ import (
 
 var (
 	ErrPostNotFound      = errors.New("post not found")
-	ErrUserNotAuthorized = errors.New("user not authorized to delete post")
+	ErrUserNotAuthorized = errors.New("user not authorized to delete/edit post")
 )
 
 type PostStore interface {
 	CreatePost(p *models.Post) (*models.Post, error)
 	GetPostByID(postID int) (*models.Post, error)
 	GetPosts(userId int, amount int) ([]models.Post, error)
+	UpdatePost(post *models.Post, updates interface{}) error
 	DeletePost(postID, userID int) error
 }
 
@@ -66,6 +67,16 @@ func (s *Store) GetPosts(userId int, limit int) ([]models.Post, error) {
 	}
 
 	return posts, nil
+}
+
+func (s *Store) UpdatePost(post *models.Post, updates interface{}) error {
+	result := s.db.Model(&post).Updates(updates)
+
+	if result.Error != nil {
+		return fmt.Errorf("failed to update post: %w", result.Error)
+	}
+
+	return nil
 }
 
 func (s *Store) DeletePost(postID, userID int) error {
