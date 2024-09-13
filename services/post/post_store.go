@@ -1,6 +1,7 @@
 package post
 
 import (
+	"errors"
 	"fmt"
 
 	"go-plate/models"
@@ -8,9 +9,16 @@ import (
 	"gorm.io/gorm"
 )
 
+var (
+	ErrPostNotFound      = errors.New("post not found")
+	ErrUserNotAuthorized = errors.New("user not authorized to delete post")
+)
+
 type PostStore interface {
 	CreatePost(p *models.Post) (*models.Post, error)
+	GetPostByID(postID int) (*models.Post, error)
 	GetPosts(userId int, amount int) ([]models.Post, error)
+	DeletePost(postID, userID int) error
 }
 
 type Store struct {
@@ -31,6 +39,20 @@ func (s *Store) CreatePost(post *models.Post) (*models.Post, error) {
 	return post, nil
 }
 
+func (s *Store) GetPostByID(postID int) (*models.Post, error) {
+	var post models.Post
+
+	result := s.db.Where("id = ?", postID).First(&post)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, ErrPostNotFound
+	}
+	if result.Error != nil {
+		return nil, fmt.Errorf("error fetching post: %w", result.Error)
+	}
+
+	return &post, nil
+}
+
 func (s *Store) GetPosts(userId int, limit int) ([]models.Post, error) {
 	var posts []models.Post
 
@@ -44,4 +66,22 @@ func (s *Store) GetPosts(userId int, limit int) ([]models.Post, error) {
 	}
 
 	return posts, nil
+}
+
+func (s *Store) DeletePost(postID, userID int) error {
+	post, err := s.GetPostByID(postID)
+	if err != nil {
+		return err
+	}
+
+	if post.UserID != uint(userID) {
+		return ErrUserNotAuthorized
+	}
+
+	result := s.db.Delete(post)
+	if result.Error != nil {
+		return fmt.Errorf("error deleting post: %w", result.Error)
+	}
+
+	return nil
 }

@@ -32,6 +32,8 @@ func (s *Service) RegisterRoutes(v1 chi.Router, v2 chi.Router, userRouter chi.Ro
 	postRouter.Group(func(r chi.Router) {
 		r.Use(middleware.SessionMiddleware(s.redis))
 		r.Post("/", s.createPost)
+		r.Delete("/{id}", s.deletePost)
+
 		// `/posts/user/1` returns same as `/users/1/posts`
 		r.Get("/user/{id}", s.getPosts)
 	})
@@ -84,6 +86,38 @@ func (s *Service) createPost(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusCreated)
+	} else {
+		w.WriteHeader(http.StatusUnauthorized)
+	}
+}
+
+func (s *Service) deletePost(w http.ResponseWriter, r *http.Request) {
+	isAuthenticated := r.Context().Value(middleware.IsAuthenticated).(bool)
+
+	if isAuthenticated {
+		session := r.Context().Value(middleware.SessionInfo).(middleware.Session)
+
+		userID := session.UserID
+
+		postID := r.PathValue("id")
+		postIDAsInt, err := strconv.Atoi(postID)
+
+		if err != nil {
+			utils.WriteError(w, http.StatusInternalServerError, err)
+			return
+		}
+
+		err = s.store.DeletePost(postIDAsInt, userID)
+
+		if err == ErrPostNotFound {
+			utils.WriteError(w, http.StatusNotFound, err)
+		} else if err == ErrUserNotAuthorized {
+			utils.WriteError(w, http.StatusForbidden, err)
+		} else if err != nil {
+			utils.WriteError(w, http.StatusInternalServerError, err)
+		}
+
+		w.WriteHeader(http.StatusNoContent)
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
 	}
