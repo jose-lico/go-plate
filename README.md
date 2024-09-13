@@ -24,7 +24,7 @@ Something that allows me (and maybe you) to spin up a new project fast and be pr
 - [x] Authentication middleware with session management (Redis-backed)
 - [ ] JWT generation and validation middleware
 - [ ] Rate Limiting
-- [ ] CI/CD pipeline for GCP services
+- [x] CI/CD pipeline for GCP Cloud Run service
 - [ ] CI/CD pipeline for AWS services
 - [ ] OAuth (Google)
 - [x] Example endpoints to showcase functionality and use
