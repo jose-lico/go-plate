@@ -7,6 +7,7 @@ import (
 	"go-plate/internal/config"
 	"go-plate/internal/database"
 	"go-plate/internal/middleware"
+	"go-plate/internal/ratelimiting"
 	"go-plate/services/post"
 	"go-plate/services/user"
 
@@ -27,6 +28,10 @@ func NewAPIServer(cfg *config.APIConfig, sql *gorm.DB, redis database.RedisStore
 }
 
 func (s *APIServer) Run() error {
+	// Initialize only the algorithms and backends needed
+	ratelimiting.TokenBucket = ratelimiting.NewTokenBucketAlgo()
+	ratelimiting.Redis = ratelimiting.NewRedisRateLimiter()
+
 	router := chi.NewRouter()
 
 	cors := cors.New(cors.Options{

@@ -8,6 +8,7 @@ import (
 
 	"go-plate/internal/database"
 	"go-plate/internal/middleware"
+	"go-plate/internal/ratelimiting"
 	"go-plate/internal/utils"
 	"go-plate/models"
 
@@ -31,12 +32,18 @@ func (s *Service) RegisterRoutes(v1 chi.Router, v2 chi.Router, userRouter chi.Ro
 
 	postRouter.Group(func(r chi.Router) {
 		r.Use(middleware.SessionMiddleware(s.redis))
-		r.Post("/", s.createPost)
-		r.Patch("/{id}", s.updatePost)
-		r.Delete("/{id}", s.deletePost)
 
 		// `/posts/user/1` returns same as `/users/1/posts`
-		r.Get("/user/{id}", s.getPosts)
+
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.RateLimitMiddleware(ratelimiting.TokenBucket, ratelimiting.Redis))
+
+			r.Get("/user/{id}", s.getPosts)
+
+			r.Post("/", s.createPost)
+			r.Patch("/{id}", s.updatePost)
+			r.Delete("/{id}", s.deletePost)
+		})
 	})
 
 	v2.Mount("/users", userRouter)
@@ -212,12 +219,13 @@ func (s *Service) getPosts(w http.ResponseWriter, r *http.Request) {
 
 	for _, post := range posts {
 		payload := ModelToResponsePayload(&post)
-		responseData = append(responseData, payload)
 
 		// Pretend v1 does not support summaries
 		if version == "v1" {
 			payload.Summary = ""
 		}
+
+		responseData = append(responseData, payload)
 	}
 
 	if len(responseData) > 0 {
