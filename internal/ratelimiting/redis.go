@@ -1,15 +1,13 @@
 package ratelimiting
 
-import "fmt"
+// type RedisRateLimiter struct {
+// }
 
-type RedisRateLimiter struct {
-}
+// func NewRedisRateLimiter() RateLimiter {
+// 	return &RedisRateLimiter{}
+// }
 
-func NewRedisRateLimiter() RateLimiter {
-	return &RedisRateLimiter{}
-}
-
-func (*RedisRateLimiter) Allow() (bool, error) {
-	fmt.Println("Check rate limit in redis")
-	return true, nil
-}
+// func (*RedisRateLimiter) Allow() (bool, error) {
+// 	fmt.Println("Check rate limit in redis")
+// 	return true, nil
+// }

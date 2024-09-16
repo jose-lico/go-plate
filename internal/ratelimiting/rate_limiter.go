@@ -1,7 +1,9 @@
 package ratelimiting
 
+import "time"
+
 type RateLimiter interface {
-	Allow() (bool, error)
+	Allow(string) (bool, time.Duration, error)
 }
 
 var (

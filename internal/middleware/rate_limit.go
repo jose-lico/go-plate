@@ -6,10 +6,10 @@ import (
 	"go-plate/internal/ratelimiting"
 )
 
-func RateLimitMiddleware(algo ratelimiting.Algorithm, rateLimiter ratelimiting.RateLimiter) func(next http.Handler) http.Handler {
+func RateLimitMiddleware(limiter ratelimiting.RateLimiter) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			allowed, _, err := algo.CanMakeRequest(rateLimiter, r)
+			allowed, _, err := limiter.Allow(r.Header.Get("X-Real-IP"))
 
 			if err != nil {
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)

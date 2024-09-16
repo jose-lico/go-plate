@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"go-plate/internal/database"
 	"go-plate/internal/middleware"
@@ -33,12 +34,15 @@ func (s *Service) RegisterRoutes(v1 chi.Router, v2 chi.Router, userRouter chi.Ro
 	postRouter.Group(func(r chi.Router) {
 		r.Use(middleware.SessionMiddleware(s.redis))
 
-		// `/posts/user/1` returns same as `/users/1/posts`
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.RateLimitMiddleware(ratelimiting.NewTokenBucket(1, 500, 5*time.Minute)))
+
+			// `/posts/user/1` returns same as `/users/1/posts`
+			r.Get("/user/{id}", s.getPosts)
+		})
 
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.RateLimitMiddleware(ratelimiting.TokenBucket, ratelimiting.Redis))
-
-			r.Get("/user/{id}", s.getPosts)
+			r.Use(middleware.RateLimitMiddleware(ratelimiting.NewTokenBucket(0.5, 250, 5*time.Minute)))
 
 			r.Post("/", s.createPost)
 			r.Patch("/{id}", s.updatePost)
