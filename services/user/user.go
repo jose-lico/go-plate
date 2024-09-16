@@ -11,6 +11,7 @@ import (
 	"go-plate/internal/auth"
 	"go-plate/internal/database"
 	"go-plate/internal/middleware"
+	"go-plate/internal/ratelimiting"
 	"go-plate/internal/utils"
 	"go-plate/models"
 
@@ -31,8 +32,12 @@ func (s *Service) RegisterRoutes(v1 chi.Router) chi.Router {
 	userRouter := chi.NewRouter()
 	v1.Mount("/users", userRouter)
 
-	userRouter.Post("/register", s.createUser)
-	userRouter.Post("/login", s.getUser)
+	userRouter.Group(func(r chi.Router) {
+		r.Use(middleware.RateLimitMiddleware(ratelimiting.NewInMemoryLeakyBucket(0.01, 3, 10*time.Minute)))
+
+		r.Post("/register", s.createUser)
+		r.Post("/login", s.getUser)
+	})
 
 	userRouter.Group(func(r chi.Router) {
 		r.Use(middleware.SessionMiddleware(s.redis))

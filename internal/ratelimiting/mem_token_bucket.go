@@ -1,21 +1,26 @@
 package ratelimiting
 
 import (
+	"log"
 	"sync"
 	"time"
 )
 
 type InMemoryTokenBucket struct {
 	mu           sync.Mutex
-	buckets      map[string]*bucket
+	buckets      map[string]*tokenBucket
 	rate         float64
 	capacity     float64
 	cleanupEvery time.Duration
 }
 
 func NewInMemoryTokenBucket(rate, capacity float64, cleanupInterval time.Duration) RateLimiter {
+	if rate <= 0 || capacity <= 0 || cleanupInterval <= 0 {
+		log.Fatalf("[FATAL] Invalid parameters for InMemoryTokenBucket")
+	}
+
 	tb := &InMemoryTokenBucket{
-		buckets:      make(map[string]*bucket),
+		buckets:      make(map[string]*tokenBucket),
 		rate:         rate,
 		capacity:     capacity,
 		cleanupEvery: cleanupInterval,
@@ -31,7 +36,7 @@ func (tb *InMemoryTokenBucket) Allow(key string) (bool, time.Duration, error) {
 	b, exists := tb.buckets[key]
 	now := time.Now()
 	if !exists {
-		tb.buckets[key] = &bucket{Tokens: tb.capacity - 1, LastRefill: now}
+		tb.buckets[key] = &tokenBucket{Tokens: tb.capacity - 1, LastRefill: now}
 		return true, 0, nil
 	}
 

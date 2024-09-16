@@ -11,21 +11,20 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type RedisTokenBucket struct {
+type RedisLeakyBucket struct {
 	redis         database.RedisStore
 	rate          float64
-	capacity      float64
+	capacity      int
 	keyExpiration time.Duration
 	ctx           context.Context
 	limiterID     string
 }
 
-func NewRedisTokenBucket(limiterID string, redis database.RedisStore, rate, capacity float64, keyExpiration time.Duration) RateLimiter {
+func NewRedisLeakyBucket(limiterID string, redis database.RedisStore, rate float64, capacity int, keyExpiration time.Duration) RateLimiter {
 	if rate <= 0 || capacity <= 0 || keyExpiration <= 0 || redis == nil {
-		log.Fatalf("[FATAL] Invalid parameters for RedisTokenBucket `%s`", limiterID)
+		log.Fatalf("[FATAL] Invalid parameters for RedisLeakyBucket `%s`", limiterID)
 	}
-
-	return &RedisTokenBucket{
+	return &RedisLeakyBucket{
 		redis:         redis,
 		rate:          rate,
 		capacity:      capacity,
@@ -35,27 +34,25 @@ func NewRedisTokenBucket(limiterID string, redis database.RedisStore, rate, capa
 	}
 }
 
-func (tb *RedisTokenBucket) Allow(key string) (bool, time.Duration, error) {
-	allowed, retryAfter, err := tb.checkBucket(key)
+func (lb *RedisLeakyBucket) Allow(key string) (bool, time.Duration, error) {
+	allowed, retryAfter, err := lb.checkBucket(key)
 	if err != nil {
 		return false, 0, err
 	}
-
 	if allowed {
 		return true, 0, nil
-	} else {
-		return false, time.Duration(retryAfter) * time.Second, nil
 	}
+	return false, time.Duration(retryAfter) * time.Second, nil
 }
 
-func (tb *RedisTokenBucket) checkBucket(key string) (bool, time.Duration, error) {
-	script := redis.NewScript(luaTokenBucket)
+func (lb *RedisLeakyBucket) checkBucket(key string) (bool, time.Duration, error) {
+	script := redis.NewScript(luaLeakyBucket)
 
-	now := float64(time.Now().UnixNano()) / 1e9
-	keys := []string{tb.getRedisKey(key)}
-	args := []interface{}{tb.rate, tb.capacity, now, int(tb.keyExpiration.Seconds())}
+	now := float64(time.Now().Unix())
+	keys := []string{lb.getRedisKey(key)}
+	args := []interface{}{lb.rate, lb.capacity, now, int(lb.keyExpiration.Seconds())}
 
-	result, err := script.Run(tb.ctx, tb.redis.GetNativeInstance().(*redis.Client), keys, args...).Result()
+	result, err := script.Run(lb.ctx, lb.redis.GetNativeInstance().(*redis.Client), keys, args...).Result()
 	if err != nil {
 		return false, 0, fmt.Errorf("failed to run Lua script: %w", err)
 	}
@@ -81,11 +78,11 @@ func (tb *RedisTokenBucket) checkBucket(key string) (bool, time.Duration, error)
 	return allowed == 1, time.Duration(retryAfterSeconds), nil
 }
 
-func (tb *RedisTokenBucket) getRedisKey(key string) string {
-	return fmt.Sprintf("ratelimit:token_bucket:%s:%s", tb.limiterID, key)
+func (lb *RedisLeakyBucket) getRedisKey(key string) string {
+	return fmt.Sprintf("ratelimit:leaky_bucket:%s:%s", lb.limiterID, key)
 }
 
-var luaTokenBucket = `
+var luaLeakyBucket = `
 local key = KEYS[1]
 local rate = tonumber(ARGV[1])
 local capacity = tonumber(ARGV[2])
@@ -93,31 +90,31 @@ local now = tonumber(ARGV[3])
 local expire = tonumber(ARGV[4])
 
 local bucket = redis.call("GET", key)
-local tokens = capacity
-local last_refill = now
+local tokens = 0
+local last_leak = now
 
 if bucket then
     local data = cjson.decode(bucket)
     tokens = data.tokens
-    last_refill = data.last_refill
-
-	local elapsed = now - last_refill
-    tokens = math.min(capacity, tokens + elapsed * rate)
-    last_refill = now
+    last_leak = data.last_leak
 end
+
+local elapsed = now - last_leak
+local leaks = elapsed * rate
+tokens = math.max(0, tokens - leaks)
+last_leak = now
 
 local allowed = 0
 local retry_after = 0
 
-if tokens >= 1 then
-    tokens = tokens - 1
+if tokens < capacity then
+    tokens = tokens + 1
     allowed = 1
 else
-    allowed = 0
-    retry_after = (1 - tokens) / rate
+    retry_after = (tokens - capacity + 1) / rate
 end
 
-local new_bucket = cjson.encode({tokens=tokens, last_refill=last_refill})
+local new_bucket = cjson.encode({tokens=tokens, last_leak=last_leak})
 redis.call("SET", key, new_bucket, "EX", expire)
 
 return {allowed, retry_after}

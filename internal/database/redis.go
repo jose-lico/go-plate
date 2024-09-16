@@ -22,10 +22,11 @@ type RedisStore interface {
 	SAdd(ctx context.Context, key string, value interface{}) error
 	SRem(ctx context.Context, key string, value interface{}) error
 	Del(ctx context.Context, key string) (int64, error)
+	GetNativeInstance() interface{}
 }
 
 type Redis struct {
-	rdb *redis.Client
+	redis *redis.Client
 }
 
 func NewRedis(cfg *config.RedisConfig) (RedisStore, error) {
@@ -44,11 +45,11 @@ func NewRedis(cfg *config.RedisConfig) (RedisStore, error) {
 		log.Fatalf("[FATAL] Error parsing Redis URL %s: %v", url, err)
 	}
 
-	rdb := redis.NewClient(opt)
+	redis := redis.NewClient(opt)
 	ctx := context.Background()
 
 	for attempts := 0; attempts < maxAttempts; attempts++ {
-		if err = rdb.Ping(ctx).Err(); err != nil {
+		if err = redis.Ping(ctx).Err(); err != nil {
 			if attempts+1 < maxAttempts {
 				log.Printf("[ERROR] Failed to connect to Redis (attempt %d). Error: %v. Attempting again in %v...", attempts+1, err, reconnectCooldown)
 			} else {
@@ -57,7 +58,7 @@ func NewRedis(cfg *config.RedisConfig) (RedisStore, error) {
 			time.Sleep(reconnectCooldown)
 		} else {
 			log.Println("[TRACE] Connected to Redis")
-			return &Redis{rdb: rdb}, nil
+			return &Redis{redis: redis}, nil
 		}
 	}
 
@@ -65,21 +66,25 @@ func NewRedis(cfg *config.RedisConfig) (RedisStore, error) {
 }
 
 func (r *Redis) Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
-	return r.rdb.Set(ctx, key, value, expiration).Err()
+	return r.redis.Set(ctx, key, value, expiration).Err()
 }
 
 func (r *Redis) Get(ctx context.Context, key string) (string, error) {
-	return r.rdb.Get(ctx, key).Result()
+	return r.redis.Get(ctx, key).Result()
 }
 
 func (r *Redis) SAdd(ctx context.Context, key string, value interface{}) error {
-	return r.rdb.SAdd(ctx, key, value).Err()
+	return r.redis.SAdd(ctx, key, value).Err()
 }
 
 func (r *Redis) SRem(ctx context.Context, key string, value interface{}) error {
-	return r.rdb.SRem(ctx, key, value).Err()
+	return r.redis.SRem(ctx, key, value).Err()
 }
 
 func (r *Redis) Del(ctx context.Context, key string) (int64, error) {
-	return r.rdb.Del(ctx, key).Result()
+	return r.redis.Del(ctx, key).Result()
+}
+
+func (r *Redis) GetNativeInstance() interface{} {
+	return r.redis
 }
