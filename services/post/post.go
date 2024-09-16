@@ -35,14 +35,14 @@ func (s *Service) RegisterRoutes(v1 chi.Router, v2 chi.Router, userRouter chi.Ro
 		r.Use(middleware.SessionMiddleware(s.redis))
 
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.RateLimitMiddleware(ratelimiting.NewTokenBucket(1, 500, 5*time.Minute)))
+			r.Use(middleware.RateLimitMiddleware(ratelimiting.NewRedisTokenBucket(s.redis, 1, 500)))
 
 			// `/posts/user/1` returns same as `/users/1/posts`
 			r.Get("/user/{id}", s.getPosts)
 		})
 
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.RateLimitMiddleware(ratelimiting.NewTokenBucket(0.5, 250, 5*time.Minute)))
+			r.Use(middleware.RateLimitMiddleware(ratelimiting.NewInMemoryTokenBucket(0.5, 250, 5*time.Minute)))
 
 			r.Post("/", s.createPost)
 			r.Patch("/{id}", s.updatePost)
