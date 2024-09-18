@@ -33,7 +33,7 @@ func (s *Service) RegisterRoutes(v1 chi.Router) chi.Router {
 	v1.Mount("/users", userRouter)
 
 	userRouter.Group(func(r chi.Router) {
-		r.Use(middleware.RateLimitMiddleware(ratelimiting.NewInMemoryLeakyBucket(0.01, 3, 10*time.Minute)))
+		r.Use(middleware.RateLimitMiddleware(ratelimiting.NewInMemoryTokenBucket(0.05, 3, 10*time.Minute)))
 
 		r.Post("/register", s.createUser)
 		r.Post("/login", s.getUser)

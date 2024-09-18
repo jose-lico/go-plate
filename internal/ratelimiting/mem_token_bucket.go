@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+type tokenBucket struct {
+	Tokens     float64
+	LastRefill time.Time
+}
+
 type InMemoryTokenBucket struct {
 	mu           sync.Mutex
 	buckets      map[string]*tokenBucket
