@@ -22,7 +22,6 @@ Something that allows me (and maybe you) to spin up a new project fast and be pr
 - [x] Redis caching implementation with [go-redis](https://github.com/redis/go-redis)
 - [x] Secure password hashing and verification
 - [x] Authentication middleware with session management (Redis-backed)
-- [ ] JWT generation and validation middleware
 - [x] Rate Limiting (Implemented Token Bucket & Sliding Window, both with in-memory storage for local rate limiting, and Redis for distributed systems across multiple server instances)
 - [x] CI/CD pipeline for GCP Cloud Run service
 - [ ] CI/CD pipeline for AWS services
