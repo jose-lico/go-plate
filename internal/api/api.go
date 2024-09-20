@@ -4,11 +4,11 @@ import (
 	"log"
 	"net/http"
 
-	"go-plate/internal/config"
-	"go-plate/internal/database"
-	"go-plate/internal/middleware"
-	"go-plate/services/post"
-	"go-plate/services/user"
+	"github.com/jose-lico/go-plate/internal/config"
+	"github.com/jose-lico/go-plate/internal/database"
+	"github.com/jose-lico/go-plate/internal/middleware"
+	"github.com/jose-lico/go-plate/services/post"
+	"github.com/jose-lico/go-plate/services/user"
 
 	"github.com/go-chi/chi/v5"
 	chi_middleware "github.com/go-chi/chi/v5/middleware"

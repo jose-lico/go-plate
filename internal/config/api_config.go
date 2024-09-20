@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"go-plate/internal/utils"
+	"github.com/jose-lico/go-plate/internal/utils"
 )
 
 type APIConfig struct {

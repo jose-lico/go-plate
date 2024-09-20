@@ -3,7 +3,7 @@ package post
 import (
 	"time"
 
-	"go-plate/models"
+	"github.com/jose-lico/go-plate/models"
 )
 
 type PostPayload struct {

@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"go-plate/internal/database"
+	"github.com/jose-lico/go-plate/internal/database"
 
 	"github.com/redis/go-redis/v9"
 )

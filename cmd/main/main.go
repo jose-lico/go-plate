@@ -4,9 +4,9 @@ import (
 	"log"
 	"os"
 
-	"go-plate/internal/api"
-	"go-plate/internal/config"
-	"go-plate/internal/database"
+	"github.com/jose-lico/go-plate/internal/api"
+	"github.com/jose-lico/go-plate/internal/config"
+	"github.com/jose-lico/go-plate/internal/database"
 
 	"github.com/joho/godotenv"
 )

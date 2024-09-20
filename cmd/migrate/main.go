@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"go-plate/internal/config"
 	"log"
 	"os"
+
+	"github.com/jose-lico/go-plate/internal/config"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"

@@ -1,4 +1,4 @@
-module go-plate
+module github.com/jose-lico/go-plate
 
 go 1.22.0
 

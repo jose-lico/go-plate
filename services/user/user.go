@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"go-plate/internal/auth"
-	"go-plate/internal/database"
-	"go-plate/internal/middleware"
-	"go-plate/internal/ratelimiting"
-	"go-plate/internal/utils"
-	"go-plate/models"
+	"github.com/jose-lico/go-plate/internal/auth"
+	"github.com/jose-lico/go-plate/internal/database"
+	"github.com/jose-lico/go-plate/internal/middleware"
+	"github.com/jose-lico/go-plate/internal/ratelimiting"
+	"github.com/jose-lico/go-plate/internal/utils"
+	"github.com/jose-lico/go-plate/models"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
