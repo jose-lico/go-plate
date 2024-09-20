@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/jose-lico/go-plate/internal/config"
+	"github.com/jose-lico/go-plate/config"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

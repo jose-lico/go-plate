@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jose-lico/go-plate/internal/ratelimiting"
+	"github.com/jose-lico/go-plate/ratelimiting"
 )
 
 func RateLimitMiddleware(limiter ratelimiting.RateLimiter) func(next http.Handler) http.Handler {

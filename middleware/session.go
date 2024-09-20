@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jose-lico/go-plate/internal/database"
-	"github.com/jose-lico/go-plate/internal/utils"
+	"github.com/jose-lico/go-plate/database"
+	"github.com/jose-lico/go-plate/utils"
 
 	go_redis "github.com/redis/go-redis/v9"
 )

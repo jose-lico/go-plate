@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jose-lico/go-plate/internal/database"
-	"github.com/jose-lico/go-plate/internal/middleware"
+	"github.com/jose-lico/go-plate/database"
+	"github.com/jose-lico/go-plate/middleware"
 
 	"gorm.io/gorm"
 )

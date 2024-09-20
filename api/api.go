@@ -4,9 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/jose-lico/go-plate/internal/config"
-	"github.com/jose-lico/go-plate/internal/database"
-	"github.com/jose-lico/go-plate/internal/middleware"
+	"github.com/jose-lico/go-plate/config"
+	"github.com/jose-lico/go-plate/database"
+	"github.com/jose-lico/go-plate/middleware"
 	"github.com/jose-lico/go-plate/services/post"
 	"github.com/jose-lico/go-plate/services/user"
 

@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/jose-lico/go-plate/internal/config"
+	"github.com/jose-lico/go-plate/config"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"

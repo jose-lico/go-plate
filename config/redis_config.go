@@ -3,7 +3,7 @@ package config
 import (
 	"os"
 
-	"github.com/jose-lico/go-plate/internal/utils"
+	"github.com/jose-lico/go-plate/utils"
 )
 
 type RedisConfig struct {
