@@ -44,6 +44,10 @@ func LoadEnvs() error {
 func GetEnvAsBool(env string) bool {
 	envValue := os.Getenv(env)
 
+	if envValue == "" {
+		return false
+	}
+
 	value, err := strconv.ParseBool(envValue)
 
 	if err != nil {
@@ -55,6 +59,10 @@ func GetEnvAsBool(env string) bool {
 
 func GetEnvAsInt(env string) int {
 	envValue := os.Getenv(env)
+
+	if envValue == "" {
+		return 0
+	}
 
 	value, err := strconv.Atoi(envValue)
 

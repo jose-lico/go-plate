@@ -23,33 +23,28 @@ func main() {
 
 	// Setup sql
 	sqlCFG, err := config.NewSQLConfig()
-
 	if err != nil {
 		log.Fatalf("[FATAL] Error loading SQL Config: %v", err)
 	}
 
 	sql, err := database.NewSQLGormDB(sqlCFG)
-
 	if err != nil {
 		log.Fatalf("[FATAL] Error connecting to SQL: %v", err)
 	}
 
 	// Setup redis
 	redisCFG, err := config.NewRedisConfig()
-
 	if err != nil {
 		log.Fatalf("[FATAL] Error loading Redis Config: %v", err)
 	}
 
 	redis, err := database.NewRedis(redisCFG)
-
 	if err != nil {
 		log.Fatalf("[FATAL] Error connecting to Redis: %v", err)
 	}
 
 	// Setup api server
 	cfg, err := config.NewAPIConfig()
-
 	if err != nil {
 		log.Fatalf("[FATAL] Error loading API Config: %v", err)
 	}
@@ -57,7 +52,6 @@ func main() {
 	api := api.NewAPIServer(cfg, sql, redis)
 
 	err = api.Run()
-
 	if err != nil {
 		log.Fatalf("[FATAL] Error launching API server: %v", err)
 	}
