@@ -7,8 +7,7 @@ import (
 	"github.com/jose-lico/go-plate/api"
 	"github.com/jose-lico/go-plate/config"
 	"github.com/jose-lico/go-plate/database"
-
-	"github.com/joho/godotenv"
+	"github.com/jose-lico/go-plate/utils"
 )
 
 func main() {
@@ -16,7 +15,7 @@ func main() {
 	env := os.Getenv("ENV")
 
 	if env == "LOCAL" {
-		err := godotenv.Load()
+		err := utils.LoadEnvs()
 		if err != nil {
 			log.Fatalf("[FATAL] Error loading .env: %v", err)
 		}

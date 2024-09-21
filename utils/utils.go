@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/joho/godotenv"
 )
 
 var Validate = validator.New()
@@ -30,6 +31,14 @@ func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(status)
 	return json.NewEncoder(w).Encode(v)
+}
+
+func LoadEnvs() error {
+	err := godotenv.Load()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func GetEnvAsBool(env string) bool {
