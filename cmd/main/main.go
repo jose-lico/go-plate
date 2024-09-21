@@ -7,7 +7,12 @@ import (
 	"github.com/jose-lico/go-plate/api"
 	"github.com/jose-lico/go-plate/config"
 	"github.com/jose-lico/go-plate/database"
+	"github.com/jose-lico/go-plate/middleware"
+	"github.com/jose-lico/go-plate/services/post"
+	"github.com/jose-lico/go-plate/services/user"
 	"github.com/jose-lico/go-plate/utils"
+
+	"github.com/go-chi/chi/v5"
 )
 
 func main() {
@@ -49,7 +54,26 @@ func main() {
 		log.Fatalf("[FATAL] Error loading API Config: %v", err)
 	}
 
-	api := api.NewAPIServer(cfg, sql, redis)
+	api := api.NewAPIServer(cfg)
+	api.UseDefaultMiddleware()
+
+	subRouter := chi.NewRouter()
+	api.Router.Mount("/api", subRouter)
+
+	v1Router := chi.NewRouter()
+	v2Router := chi.NewRouter()
+	subRouter.Mount("/v1", v1Router)
+	subRouter.Mount("/v2", v2Router)
+	v1Router.Use(middleware.VersionURLMiddleware("v1"))
+	v2Router.Use(middleware.VersionURLMiddleware("v2"))
+
+	userStore := user.NewStore(sql)
+	userService := user.NewService(userStore, redis)
+	userRouter := userService.RegisterRoutes(v1Router)
+
+	postStore := post.NewStore(sql)
+	postServer := post.NewService(postStore, redis)
+	postServer.RegisterRoutes(v1Router, v2Router, userRouter)
 
 	err = api.Run()
 	if err != nil {

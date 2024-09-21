@@ -5,30 +5,22 @@ import (
 	"net/http"
 
 	"github.com/jose-lico/go-plate/config"
-	"github.com/jose-lico/go-plate/database"
-	"github.com/jose-lico/go-plate/middleware"
-	"github.com/jose-lico/go-plate/services/post"
-	"github.com/jose-lico/go-plate/services/user"
 
 	"github.com/go-chi/chi/v5"
-	chi_middleware "github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/cors"
-	"gorm.io/gorm"
 )
 
 type APIServer struct {
-	cfg   *config.APIConfig
-	sql   *gorm.DB
-	redis database.RedisStore
+	Router *chi.Mux
+	cfg    *config.APIConfig
 }
 
-func NewAPIServer(cfg *config.APIConfig, sql *gorm.DB, redis database.RedisStore) *APIServer {
-	return &APIServer{cfg: cfg, sql: sql, redis: redis}
+func NewAPIServer(cfg *config.APIConfig) *APIServer {
+	return &APIServer{Router: chi.NewRouter(), cfg: cfg}
 }
 
-func (s *APIServer) Run() error {
-	router := chi.NewRouter()
-
+func (s *APIServer) UseDefaultMiddleware() {
 	cors := cors.New(cors.Options{
 		AllowedOrigins:   s.cfg.AllowedOrigins,
 		AllowedMethods:   s.cfg.AllowedMethods,
@@ -38,32 +30,16 @@ func (s *APIServer) Run() error {
 		MaxAge:           s.cfg.MaxAge,
 	})
 
-	router.Use(cors.Handler)
+	s.Router.Use(cors.Handler)
 
-	router.Use(chi_middleware.RequestID)
-	router.Use(chi_middleware.RealIP)
-	router.Use(chi_middleware.Logger)
-	router.Use(chi_middleware.Recoverer)
+	s.Router.Use(middleware.RequestID)
+	s.Router.Use(middleware.RealIP)
+	s.Router.Use(middleware.Logger)
+	s.Router.Use(middleware.Recoverer)
+}
 
-	subRouter := chi.NewRouter()
-	router.Mount("/api", subRouter)
-
-	v1Router := chi.NewRouter()
-	v2Router := chi.NewRouter()
-	subRouter.Mount("/v1", v1Router)
-	subRouter.Mount("/v2", v2Router)
-	v1Router.Use(middleware.VersionURLMiddleware("v1"))
-	v2Router.Use(middleware.VersionURLMiddleware("v2"))
-
-	userStore := user.NewStore(s.sql)
-	userService := user.NewService(userStore, s.redis)
-	userRouter := userService.RegisterRoutes(v1Router)
-
-	postStore := post.NewStore(s.sql)
-	postServer := post.NewService(postStore, s.redis)
-	postServer.RegisterRoutes(v1Router, v2Router, userRouter)
-
+func (s *APIServer) Run() error {
 	addr := ":" + s.cfg.Port
 	log.Printf("[TRACE] Starting API server on %s", addr)
-	return http.ListenAndServe(addr, router)
+	return http.ListenAndServe(addr, s.Router)
 }
