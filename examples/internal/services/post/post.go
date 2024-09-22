@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/jose-lico/go-plate/database"
-	"github.com/jose-lico/go-plate/examples/models"
+	"github.com/jose-lico/go-plate/examples/internal/models"
 	"github.com/jose-lico/go-plate/middleware"
 	"github.com/jose-lico/go-plate/ratelimiting"
 	"github.com/jose-lico/go-plate/utils"
