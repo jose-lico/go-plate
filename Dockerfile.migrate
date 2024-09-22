@@ -6,7 +6,7 @@ COPY . .
 
 RUN go mod download
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o bin/main ./cmd/migrate/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o bin/main ./examples/migrate/main.go
 
 FROM alpine:3.19
 RUN apk add --no-cache ca-certificates
@@ -14,6 +14,6 @@ RUN apk add --no-cache ca-certificates
 WORKDIR /app
 
 COPY --from=builder /app/bin/main /app
-COPY --from=builder /app/cmd/migrate/migrations /app
+COPY --from=builder /app/examples/migrate/migrations /app
 
 ENTRYPOINT ["./main"]

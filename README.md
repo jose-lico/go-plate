@@ -25,7 +25,6 @@ Something that allows me (and maybe you) to spin up a new project fast and be pr
 - [x] Rate Limiting (Implemented Token Bucket & Sliding Window, both with in-memory storage for local rate limiting, and Redis for distributed systems across multiple server instances)
 - [x] CI/CD pipeline for GCP Cloud Run service
 - [ ] CI/CD pipeline for AWS services
-- [ ] OAuth (Google)
 - [x] Example endpoints to showcase functionality and use
 - [ ] Documentation generation with [Swagger](https://swagger.io/)
 

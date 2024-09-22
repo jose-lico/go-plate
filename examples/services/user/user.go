@@ -10,8 +10,8 @@ import (
 
 	"github.com/jose-lico/go-plate/auth"
 	"github.com/jose-lico/go-plate/database"
+	"github.com/jose-lico/go-plate/examples/models"
 	"github.com/jose-lico/go-plate/middleware"
-	"github.com/jose-lico/go-plate/models"
 	"github.com/jose-lico/go-plate/ratelimiting"
 	"github.com/jose-lico/go-plate/utils"
 

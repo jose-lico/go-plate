@@ -7,9 +7,9 @@ import (
 	"github.com/jose-lico/go-plate/api"
 	"github.com/jose-lico/go-plate/config"
 	"github.com/jose-lico/go-plate/database"
+	"github.com/jose-lico/go-plate/examples/services/post"
+	"github.com/jose-lico/go-plate/examples/services/user"
 	"github.com/jose-lico/go-plate/middleware"
-	"github.com/jose-lico/go-plate/services/post"
-	"github.com/jose-lico/go-plate/services/user"
 	"github.com/jose-lico/go-plate/utils"
 
 	"github.com/go-chi/chi/v5"

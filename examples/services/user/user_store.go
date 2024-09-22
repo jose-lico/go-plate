@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/jose-lico/go-plate/models"
+	"github.com/jose-lico/go-plate/examples/models"
 
 	"gorm.io/gorm"
 )

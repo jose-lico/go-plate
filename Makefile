@@ -6,10 +6,10 @@ dev:
 	ENV=LOCAL air
 
 run:
-	ENV=LOCAL go run ./cmd/main
+	ENV=LOCAL go run ./examples/main
 
 build:
-	go build -o bin/main ./cmd/main
+	go build -o bin/main ./examples/main
 
 # ================================
 #         Docker Commands
@@ -31,13 +31,13 @@ down-v:
 # ================================
 
 migration:
-	migrate create -ext sql -dir cmd/migrate/migrations $(name)
+	migrate create -ext sql -dir examples/migrate/migrations $(name)
 
 migrate-up:
-	ENV=LOCAL go run cmd/migrate/main.go up cmd/migrate/migrations
+	ENV=LOCAL go run examples/migrate/main.go up examples/migrate/migrations
 
 migrate-down:
-	ENV=LOCAL go run cmd/migrate/main.go down cmd/migrate/migrations
+	ENV=LOCAL go run examples/migrate/main.go down examples/migrate/migrations
 
 # ================================
 #         Docker Migrations  
