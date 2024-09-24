@@ -9,6 +9,12 @@ After all that trial and error, I decided to put together this Go backend boiler
 It is supposed to serve as a distillation of all the lessons I've learned and a starting point that incorporates the patterns and practices I've found to be most effective.
 Something that allows me (and maybe you) to spin up a new project fast and be productive.
 
+It also includes some examples of how to use it and how I like to structure my backends.
+
+## Install
+
+`go get github.com/jose-lico/go-plate`
+
 ## Overview & Features
 
 - [x] Routing with [chi](https://github.com/go-chi/chi) (Lightweight, 100% compatible with net/http)
@@ -30,10 +36,10 @@ Something that allows me (and maybe you) to spin up a new project fast and be pr
 
 ## How to use
 
-For local development, copy `.env.example` to `.env` with your variables or otherwise inject them.
+To run the examples in `/examples`, copy `.env.example` to `.env` with your variables or otherwise inject them.
 For docker, a sample `docker-compose.yml` is at the root with these variables.
 
-At the root of the project is a Makefile with some util commands to help development.
+At the root of the project there is a Makefile with some util commands to run these examples.
 
 ### Go commands
 
@@ -45,11 +51,11 @@ At the root of the project is a Makefile with some util commands to help develop
 
 ### Docker commands
 
-`make up` -> Spins up docker container(s) with docker-compose
+`make up` -> Spins up docker containers with docker-compose
 
-`make down` -> Spins down docker container(s) with docker-compose
+`make down` -> Spins down docker containers with docker-compose
 
-`make down -v` -> Spins down docker container(s) and volume(s) with docker-compose
+`make down -v` -> Spins down docker containers and volumes with docker-compose
 
 ### Migrations
 
