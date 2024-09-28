@@ -127,28 +127,28 @@ func hello(w http.ResponseWriter, r *http.Request) {
 ```
 .
 ├── api
-│   ├── api.go					// Server
+│   ├── api.go				// Server
 ├── auth						
-│ 	├── password.go				// Hash and compare password
-│ 	├── token.go				// Generate random 32 byte token 
+│ 	├── password.go			// Hash and compare password
+│ 	├── token.go			// Generate random 32 byte token 
 ├── config
 │   ├── api_config.go			// API configuration
 │   ├── redis_config.go			// Redis configuration
 │   └── sql_config.go			// SQL configuration
 ├── database
-│   ├── redis.go				// Redis interface, implemented with go-redis
-│   └── sql_gorm.go				// SQL interface, using gorm
+│   ├── redis.go			// Redis interface, implemented with go-redis
+│   └── sql_gorm.go			// SQL interface, using gorm
 ├── middleware
 │   ├── rate_limit.go			// Rate litiming with algorithm of choice
-│   ├── session.go				// Session with redis
+│   ├── session.go			// Session with redis
 │   └── versioning.go			// API versioning
 ├── ratelimiting
-│   ├── mem_sliding_window.go	// In-memory Sliding Window
+│   ├── mem_sliding_window.go		// In-memory Sliding Window
 │   ├── mem_token_bucket.go		// In-memory Token Bucket
 │   ├── rate_limiter.go			// Rate Limiter interface
-│   └── redis_token_bucket.go	// Redis Token Bucket
+│   └── redis_token_bucket.go		// Redis Token Bucket
 ├── utils
-│   └── utils.go				// Utils functions
+│   └── utils.go			// Utils functions
 ```
 
 ## Examples
