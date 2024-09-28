@@ -28,13 +28,130 @@ It also includes some examples of how to use it and how I like to structure my b
 - [x] Redis caching implementation with [go-redis](https://github.com/redis/go-redis)
 - [x] Secure password hashing and verification
 - [x] Authentication middleware with session management (Redis-backed)
-- [x] Rate Limiting (Implemented Token Bucket & Sliding Window, both with in-memory storage for local rate limiting, and Redis for distributed systems across multiple server instances)
+- [x] Rate Limiting (Implemented Token Bucket & Sliding Window, with in-memory storage for local rate limiting, and Redis for distributed systems across multiple server instances)
 - [x] CI/CD pipeline for GCP Cloud Run service
 - [ ] CI/CD pipeline for AWS services
 - [x] Example endpoints to showcase functionality and use
 - [ ] Documentation generation with [Swagger](https://swagger.io/)
 
 ## How to use
+
+To get started, create a new `APIServer` object:
+
+```go
+import "github.com/jose-lico/go-plate/api"
+
+func main() {
+	cfg, err := config.NewAPIConfig()
+	if err != nil {
+		...
+	}
+
+	api := api.NewAPIServer(cfg)
+	api.UseDefaultMiddleware()
+
+	api.Run()
+}
+```
+
+Register some endpoints:
+
+```go
+import "github.com/jose-lico/go-plate/api"
+
+func main() {
+	...
+
+	api.Router.Get("/", hello)
+}
+
+func hello(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Hello, World!")
+}
+```
+
+Connect to Redis and PostgreSQL:
+
+```go
+import "github.com/jose-lico/go-plate/database"
+
+func main() {
+	redisCFG, err := config.NewRedisConfig()
+	if err != nil {
+		...
+	}
+
+	redis, err := database.NewRedis(redisCFG)
+	if err != nil {
+		...
+	}
+
+	sqlCFG, err := config.NewSQLConfig()
+	if err != nil {
+		...
+	}
+
+	sql, err := database.NewSQLGormDB(sqlCFG)
+	if err != nil {
+		...
+	}
+}
+```
+
+Create some server-wide and endpoint specfic middleware:
+
+```go
+import (
+	"github.com/jose-lico/go-plate/api"
+	"github.com/jose-lico/go-plate/middleware"
+	"github.com/jose-lico/go-plate/ratelimiting"
+)
+
+func main() {
+	...
+
+	api.Router.Group(func(r chi.Router) {
+		r.Use(middleware.RateLimitMiddleware(ratelimiting.NewInMemoryTokenBucket(0.05, 3, 10*time.Minute)))
+
+		r.Get("/rate-limited", hello)
+	})
+}
+
+func hello(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Hello, World!")
+}
+```
+
+## Structure
+
+```
+.
+├── api
+│   ├── api.go					// Server
+├── auth						
+│ 	├── password.go				// Hash and compare password
+│ 	├── token.go				// Generate random 32 byte token 
+├── config
+│   ├── api_config.go			// API configuration
+│   ├── redis_config.go			// Redis configuration
+│   └── sql_config.go			// SQL configuration
+├── database
+│   ├── redis.go				// Redis interface, implemented with go-redis
+│   └── sql_gorm.go				// SQL interface, using gorm
+├── middleware
+│   ├── rate_limit.go			// Rate litiming with algorithm of choice
+│   ├── session.go				// Session with redis
+│   └── versioning.go			// API versioning
+├── ratelimiting
+│   ├── mem_sliding_window.go	// In-memory Sliding Window
+│   ├── mem_token_bucket.go		// In-memory Token Bucket
+│   ├── rate_limiter.go			// Rate Limiter interface
+│   └── redis_token_bucket.go	// Redis Token Bucket
+├── utils
+│   └── utils.go				// Utils functions
+```
+
+## Examples
 
 To run the examples in `/examples`, copy `.env.example` to `.env` with your variables or otherwise inject them.
 For docker, a sample `docker-compose.yml` is at the root with these variables.

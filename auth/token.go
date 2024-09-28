@@ -6,9 +6,9 @@ import (
 )
 
 func GenerateToken() (string, error) {
-	b := make([]byte, 32)
-	if _, err := rand.Read(b); err != nil {
+	var b [32]byte
+	if _, err := rand.Read(b[:]); err != nil {
 		return "", err
 	}
-	return hex.EncodeToString(b), nil
+	return hex.EncodeToString(b[:]), nil
 }
