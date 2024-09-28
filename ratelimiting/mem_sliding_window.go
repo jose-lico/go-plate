@@ -93,7 +93,7 @@ func (swc *InMemorySlidingWindowCounter) Allow(key string) (bool, time.Duration,
 		total += count
 	}
 
-	if total > swc.rate {
+	if total >= swc.rate {
 		for i := 0; i < swc.numSubWindows; i++ {
 			idx := (currentSubWindow + i + 1) % swc.numSubWindows
 			if window.counts[idx] > 0 {
