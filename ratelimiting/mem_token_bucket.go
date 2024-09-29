@@ -7,8 +7,8 @@ import (
 )
 
 type tokenBucket struct {
-	Tokens     float64
-	LastRefill time.Time
+	tokens     float64
+	lastRefill time.Time
 }
 
 type InMemoryTokenBucket struct {
@@ -41,20 +41,20 @@ func (tb *InMemoryTokenBucket) Allow(key string) (bool, time.Duration, error) {
 	b, exists := tb.buckets[key]
 	now := time.Now()
 	if !exists {
-		tb.buckets[key] = &tokenBucket{Tokens: tb.capacity - 1, LastRefill: now}
+		tb.buckets[key] = &tokenBucket{tokens: tb.capacity - 1, lastRefill: now}
 		return true, 0, nil
 	}
 
-	elapsed := now.Sub(b.LastRefill).Seconds()
-	b.Tokens = min(tb.capacity, b.Tokens+elapsed*tb.rate)
-	b.LastRefill = now
+	elapsed := now.Sub(b.lastRefill).Seconds()
+	b.tokens = min(tb.capacity, b.tokens+elapsed*tb.rate)
+	b.lastRefill = now
 
-	if b.Tokens >= 1 {
-		b.Tokens--
+	if b.tokens >= 1 {
+		b.tokens--
 		return true, 0, nil
 	}
 
-	retryAfter := time.Duration((1-b.Tokens)/tb.rate) * time.Second
+	retryAfter := time.Duration((1-b.tokens)/tb.rate) * time.Second
 	return false, retryAfter, nil
 }
 
@@ -62,7 +62,7 @@ func (tb *InMemoryTokenBucket) cleanup() {
 	for range time.Tick(tb.cleanupEvery) {
 		tb.mu.Lock()
 		for key, bucket := range tb.buckets {
-			if time.Since(bucket.LastRefill) > tb.cleanupEvery {
+			if time.Since(bucket.lastRefill) > tb.cleanupEvery {
 				delete(tb.buckets, key)
 			}
 		}
