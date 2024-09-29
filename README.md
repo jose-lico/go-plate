@@ -129,8 +129,8 @@ func hello(w http.ResponseWriter, r *http.Request) {
 ├── api
 │   ├── api.go				// Server
 ├── auth						
-│ 	├── password.go			// Hash and compare password
-│ 	├── token.go			// Generate random 32 byte token 
+│   ├── password.go			// Hash and compare password
+│   ├── token.go			// Generate random 32 byte token 
 ├── config
 │   ├── api_config.go			// API configuration
 │   ├── redis_config.go			// Redis configuration
