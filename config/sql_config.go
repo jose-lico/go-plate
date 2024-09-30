@@ -15,7 +15,7 @@ type SQLGormConfig struct {
 	DatabaseName string
 }
 
-func NewSQLConfig() (*SQLGormConfig, error) {
+func NewSQLConfig() *SQLGormConfig {
 	return &SQLGormConfig{
 		SSLMode:      os.Getenv("SQL_SSL_MODE"),
 		SSLCertPath:  os.Getenv("SQL_SSL_CERT_PATH"),
@@ -24,5 +24,5 @@ func NewSQLConfig() (*SQLGormConfig, error) {
 		Username:     os.Getenv("SQL_USER"),
 		Password:     os.Getenv("SQL_PASSWORD"),
 		DatabaseName: os.Getenv("SQL_NAME"),
-	}, nil
+	}
 }

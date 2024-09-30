@@ -14,11 +14,11 @@ type RedisConfig struct {
 	Password string
 }
 
-func NewRedisConfig() (*RedisConfig, error) {
+func NewRedisConfig() *RedisConfig {
 	return &RedisConfig{
 		UseTLS:   utils.GetEnvAsBool("RD_USE_TLS"),
 		Host:     os.Getenv("RD_HOST"),
 		Port:     os.Getenv("RD_PORT"),
 		Password: os.Getenv("RD_PASSWORD"),
-	}, nil
+	}
 }

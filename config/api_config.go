@@ -21,7 +21,7 @@ type APIConfig struct {
 	MaxAge           int
 }
 
-func NewAPIConfig() (*APIConfig, error) {
+func NewAPIConfig() *APIConfig {
 	env := os.Getenv("ENV")
 
 	return &APIConfig{
@@ -35,5 +35,5 @@ func NewAPIConfig() (*APIConfig, error) {
 		ExposedHeaders:   strings.Split(os.Getenv("EXPOSED_HEADERS"), ","),
 		AllowCredentials: utils.GetEnvAsBool("ALLOW_CREDENTIALS"),
 		MaxAge:           utils.GetEnvAsInt("MAX_AGE"),
-	}, nil
+	}
 }
