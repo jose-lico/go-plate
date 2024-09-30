@@ -42,11 +42,7 @@ To get started, create a new `APIServer` object:
 import "github.com/jose-lico/go-plate/api"
 
 func main() {
-	cfg, err := config.NewAPIConfig()
-	if err != nil {
-		...
-	}
-
+	cfg := config.NewAPIConfig()
 	api := api.NewAPIServer(cfg)
 	api.UseDefaultMiddleware()
 
@@ -76,21 +72,13 @@ Connect to Redis and PostgreSQL:
 import "github.com/jose-lico/go-plate/database"
 
 func main() {
-	redisCFG, err := config.NewRedisConfig()
-	if err != nil {
-		...
-	}
-
+	redisCFG := config.NewRedisConfig()
 	redis, err := database.NewRedis(redisCFG)
 	if err != nil {
 		...
 	}
 
-	sqlCFG, err := config.NewSQLConfig()
-	if err != nil {
-		...
-	}
-
+	sqlCFG := config.NewSQLConfig()
 	sql, err := database.NewSQLGormDB(sqlCFG)
 	if err != nil {
 		...
@@ -128,9 +116,9 @@ func hello(w http.ResponseWriter, r *http.Request) {
 .
 ├── api
 │   ├── api.go				// Server
-├── auth						
+├── auth
 │   ├── password.go			// Hash and compare password
-│   ├── token.go			// Generate random 32 byte token 
+│   ├── token.go			// Generate random 32 byte token
 ├── config
 │   ├── api_config.go			// API configuration
 │   ├── redis_config.go			// Redis configuration
