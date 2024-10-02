@@ -14,6 +14,9 @@ build:
 test:
 	go test -v ./...
 
+gen-docs:
+	swag init -g examples/main/main.go
+
 # ================================
 #         Docker Commands
 # ================================

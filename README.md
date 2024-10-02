@@ -32,7 +32,7 @@ It also includes some examples of how to use it and how I like to structure my b
 - [x] CI/CD pipeline for GCP Cloud Run service
 - [ ] CI/CD pipeline for AWS services
 - [x] Example endpoints to showcase functionality and use
-- [ ] Documentation generation with [Swagger](https://swagger.io/)
+- [x] Documentation generation with [Swagger](https://swagger.io/)
 
 ## How to use
 
@@ -153,6 +153,8 @@ At the root of the project there is a Makefile with some util commands to run th
 `make run` -> go run
 
 `make build` -> go build
+
+`make gen-docs` -> generates API docs
 
 ### Docker commands
 

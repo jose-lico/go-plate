@@ -36,7 +36,7 @@ func (s *Service) RegisterRoutes(v1 chi.Router) chi.Router {
 		r.Use(middleware.RateLimitMiddleware(ratelimiting.NewInMemoryTokenBucket(0.05, 3, 10*time.Minute)))
 
 		r.Post("/register", s.createUser)
-		r.Post("/login", s.getUser)
+		r.Post("/login", s.loginUser)
 	})
 
 	userRouter.Group(func(r chi.Router) {
@@ -66,6 +66,12 @@ func (s *Service) RegisterRoutes(v1 chi.Router) chi.Router {
 	return userRouter
 }
 
+// @Summary Creates a new user
+// @Accept json
+// @Param user body RegisterUserPayload true "User data"
+// @Success 201
+// @Failure 400
+// @Router /api/v1/users/register [post]
 func (s *Service) createUser(w http.ResponseWriter, r *http.Request) {
 	var user RegisterUserPayload
 	if err := utils.ParseJSON(r, &user); err != nil {
@@ -94,6 +100,7 @@ func (s *Service) createUser(w http.ResponseWriter, r *http.Request) {
 	u, err := s.store.CreateUser(&models.User{
 		Email:    strings.ToLower(user.Email),
 		Password: hashedPassword,
+		Name:     user.Name,
 	})
 
 	if err != nil {
@@ -105,7 +112,7 @@ func (s *Service) createUser(w http.ResponseWriter, r *http.Request) {
 	s.generateSession(w, r, u, http.StatusCreated)
 }
 
-func (s *Service) getUser(w http.ResponseWriter, r *http.Request) {
+func (s *Service) loginUser(w http.ResponseWriter, r *http.Request) {
 	var user LoginUserPayload
 	if err := utils.ParseJSON(r, &user); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)

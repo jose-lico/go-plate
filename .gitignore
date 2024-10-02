@@ -4,4 +4,7 @@
 # bin files
 /bin
 
+#docs
+/docs
+
 .env

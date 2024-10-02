@@ -12,7 +12,10 @@ import (
 	"github.com/jose-lico/go-plate/middleware"
 	"github.com/jose-lico/go-plate/utils"
 
+	_ "github.com/jose-lico/go-plate/docs"
+
 	"github.com/go-chi/chi/v5"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func main() {
@@ -62,6 +65,10 @@ func main() {
 	postStore := post.NewStore(sql)
 	postServer := post.NewService(postStore, redis)
 	postServer.RegisterRoutes(v1Router, v2Router, userRouter)
+
+	api.Router.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8080/swagger/doc.json"),
+	))
 
 	err = api.Run()
 	if err != nil {
