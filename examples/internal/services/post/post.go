@@ -35,18 +35,14 @@ func (s *Service) RegisterRoutes(v1 chi.Router, v2 chi.Router, userRouter chi.Ro
 		r.Use(middleware.SessionMiddleware(s.redis))
 
 		r.Group(func(r chi.Router) {
-			// Different rate limit algorithms/data storage strategies
-
-			//r.Use(middleware.RateLimitMiddleware(ratelimiting.NewRedisTokenBucket("/posts", s.redis, 0.025, 200, 10*time.Minute)))
-			//r.Use(middleware.RateLimitMiddleware(ratelimiting.NewInMemoryTokenBucket(1, 500, 5*time.Minute)))
-			r.Use(middleware.RateLimitMiddleware(ratelimiting.NewInMemorySlidingWindowCounter(100, 10*time.Second, 1*time.Second, 5*time.Minute)))
+			r.Use(middleware.RateLimitMiddleware(ratelimiting.NewRedisTokenBucket("/posts", s.redis, 0.1, 20, 10*time.Minute)))
 
 			// `/posts/user/1` returns same as `/users/1/posts`
 			r.Get("/user/{id}", s.getPosts)
 		})
 
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.RateLimitMiddleware(ratelimiting.NewRedisTokenBucket("/posts", s.redis, 0.025, 200, 10*time.Minute)))
+			r.Use(middleware.RateLimitMiddleware(ratelimiting.NewRedisTokenBucket("/posts", s.redis, 0.1, 20, 10*time.Minute)))
 
 			r.Post("/", s.createPost)
 			r.Patch("/{id}", s.updatePost)

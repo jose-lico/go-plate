@@ -11,6 +11,9 @@ run:
 build:
 	go build -o bin/main ./examples/main
 
+test:
+	go test -v ./...
+
 # ================================
 #         Docker Commands
 # ================================
