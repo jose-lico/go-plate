@@ -15,7 +15,7 @@ func main() {
 	api.UseDefaultMiddleware()
 
 	api.Router.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello World!")
+		fmt.Fprintf(w, "Hello World!!!")
 	})
 
 	err := api.Run()
