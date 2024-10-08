@@ -30,7 +30,7 @@ It also includes some examples of how to use it and how I like to structure my b
 - [x] Authentication middleware with session management (Redis-backed)
 - [x] Rate Limiting (Implemented Token Bucket & Sliding Window, with in-memory storage for local rate limiting, and Redis for distributed systems across multiple server instances)
 - [x] CI/CD pipeline for GCP Cloud Run service
-- [ ] CI/CD pipeline for AWS services
+- [x] CI/CD pipeline for AWS App Runner service
 - [x] Example endpoints to showcase functionality and use
 - [x] Documentation generation with [Swagger](https://swagger.io/)
 

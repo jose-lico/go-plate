@@ -26,4 +26,4 @@ jobs:
           docker build -t ${{ secrets.ECR_REPOSITORY_URL }}:latest -f Dockerfile.cloud .
           docker push ${{ secrets.ECR_REPOSITORY_URL }}:latest
 
-      # There is no need to deply to app runner explicitly, since a service can be set to automatically deploy new images
+      # There is no need to deploy to app runner explicitly, since a service can be set to automatically deploy new images
