@@ -1,0 +1,29 @@
+name: Deploy to AWS - App Runner
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to Amazon ECR
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |-
+          aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.ECR_REPOSITORY_URL }}
+
+      - name: Build and Push Image
+        run: |-
+          docker build -t ${{ secrets.ECR_REPOSITORY_URL }}:latest -f Dockerfile.cloud .
+          docker push ${{ secrets.ECR_REPOSITORY_URL }}:latest
+
+      # There is no need to deply to app runner explicitly, since a service can be set to automatically deploy new images
