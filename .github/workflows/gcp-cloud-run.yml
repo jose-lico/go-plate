@@ -32,7 +32,7 @@ jobs:
 
       - name: Build and Push Container
         run: |-
-          docker build -t "${{ vars.AR_REPO_REGION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ vars.AR_REPO_NAME }}/go_${{ github.sha }}" .
+          docker build -t "${{ vars.AR_REPO_REGION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ vars.AR_REPO_NAME }}/go_${{ github.sha }}" -f Dockerfile.cloud .
           docker push "${{ vars.AR_REPO_REGION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ vars.AR_REPO_NAME }}/go_${{ github.sha }}"
 
       - name: Deploy to Cloud Run
