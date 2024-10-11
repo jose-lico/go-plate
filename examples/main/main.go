@@ -1,9 +1,15 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/jose-lico/go-plate/api"
 	"github.com/jose-lico/go-plate/config"
@@ -71,8 +77,26 @@ func main() {
 		httpSwagger.URL(fmt.Sprintf("http://%s:%s/swagger/doc.json", cfg.Host, cfg.Port)),
 	))
 
-	err = api.Run()
-	if err != nil {
-		log.Fatalf("[FATAL] Error launching API server: %v", err)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	go func() {
+		log.Printf("[TRACE] Starting API server on %s", api.Server.Addr)
+		if err := api.Server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("[FATAL] Listen and serve error: %v", err)
+		}
+
+		log.Println("[TRACE] Stopped serving new connections.")
+	}()
+
+	<-ctx.Done()
+
+	shutdownContext, shutdownCancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer shutdownCancel()
+
+	if err := api.Server.Shutdown(shutdownContext); err != nil {
+		log.Printf("[ERROR] Server shutdown returned an error: %v\n", err)
 	}
+
+	log.Println("[TRACE] Server shutdown")
 }

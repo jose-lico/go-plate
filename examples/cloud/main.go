@@ -18,7 +18,7 @@ func main() {
 		fmt.Fprintf(w, "Hello World!!!")
 	})
 
-	err := api.Run()
+	err := api.Server.ListenAndServe()
 	if err != nil {
 		log.Fatalf("[FATAL] Error launching API server: %v", err)
 	}

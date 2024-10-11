@@ -192,6 +192,7 @@ func (s *Service) deletePost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) getPosts(w http.ResponseWriter, r *http.Request) {
+	time.Sleep(2 * time.Second)
 	id := r.PathValue("id")
 	idAsInt, err := strconv.Atoi(id)
 
