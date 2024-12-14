@@ -20,6 +20,7 @@ require (
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
+	github.com/go-chi/chi v1.5.4 // indirect
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
 	github.com/go-openapi/jsonreference v0.21.0 // indirect
 	github.com/go-openapi/spec v0.21.0 // indirect
@@ -38,11 +39,14 @@ require (
 	github.com/swaggo/files v1.0.1 // indirect
 	github.com/swaggo/swag v1.16.3 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
+	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/net v0.29.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/tools v0.25.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	moul.io/chizap v1.0.3 // indirect
 )
 
 require (

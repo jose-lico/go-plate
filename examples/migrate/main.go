@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/jose-lico/go-plate/config"
-	"github.com/jose-lico/go-plate/utils"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -27,7 +27,7 @@ func main() {
 	env := os.Getenv("ENV")
 
 	if env == "LOCAL" {
-		err := utils.LoadEnvs()
+		err := godotenv.Load()
 		if err != nil {
 			log.Fatalf("[FATAL] Error loading .env: %v", err)
 		}

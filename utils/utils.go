@@ -3,13 +3,12 @@ package utils
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 )
 
 var Validate = validator.New()
@@ -33,14 +32,6 @@ func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	return json.NewEncoder(w).Encode(v)
 }
 
-func LoadEnvs() error {
-	err := godotenv.Load()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func GetEnvAsBool(env string) bool {
 	envValue := os.Getenv(env)
 
@@ -51,7 +42,9 @@ func GetEnvAsBool(env string) bool {
 	value, err := strconv.ParseBool(envValue)
 
 	if err != nil {
-		log.Printf("[ERROR] Error parsing env variable `%s` with value `%s` to bool: %v", env, envValue, err)
+		zap.L().Warn("Error parsing env variable to bool",
+			zap.String("env", env),
+			zap.String("value", envValue))
 	}
 
 	return value
@@ -67,7 +60,9 @@ func GetEnvAsInt(env string) int {
 	value, err := strconv.Atoi(envValue)
 
 	if err != nil {
-		log.Printf("[ERROR] Error parsing env variable `%s` with value `%s` to int: %v", env, envValue, err)
+		zap.L().Warn("Error parsing env variable to int",
+			zap.String("env", env),
+			zap.String("value", envValue))
 	}
 
 	return value

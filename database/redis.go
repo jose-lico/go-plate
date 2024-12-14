@@ -3,12 +3,12 @@ package database
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/jose-lico/go-plate/config"
 
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 )
 
 const (
@@ -29,7 +29,7 @@ type Redis struct {
 	redis *redis.Client
 }
 
-func NewRedis(cfg *config.RedisConfig) (RedisStore, error) {
+func NewRedis(cfg *config.RedisConfig, logger *zap.Logger) (RedisStore, error) {
 	url := fmt.Sprintf("redis%s://default:%s@%s:%s",
 		func() string {
 			if cfg.UseTLS {
@@ -42,7 +42,7 @@ func NewRedis(cfg *config.RedisConfig) (RedisStore, error) {
 	opt, err := redis.ParseURL(url)
 
 	if err != nil {
-		log.Fatalf("[FATAL] Error parsing Redis URL %s: %v", url, err)
+		logger.Fatal("Error parsing Redis URL", zap.String("URL", url), zap.Error(err))
 	}
 
 	redis := redis.NewClient(opt)
@@ -51,13 +51,11 @@ func NewRedis(cfg *config.RedisConfig) (RedisStore, error) {
 	for attempts := 0; attempts < maxAttempts; attempts++ {
 		if err = redis.Ping(ctx).Err(); err != nil {
 			if attempts+1 < maxAttempts {
-				log.Printf("[ERROR] Failed to connect to Redis (attempt %d). Error: %v. Attempting again in %v...", attempts+1, err, reconnectCooldown)
-			} else {
-				log.Printf("[ERROR] Failed to connect to Redis (attempt %d). Error: %v", attempts+1, err)
+				logger.Warn(fmt.Sprintf("Failed to connect to Redis (attempt %d). Attempting again in %v...", attempts+1, reconnectCooldown), zap.Error(err))
 			}
 			time.Sleep(reconnectCooldown)
 		} else {
-			log.Println("[TRACE] Connected to Redis")
+			logger.Info("Connected to Redis")
 			return &Redis{redis: redis}, nil
 		}
 	}

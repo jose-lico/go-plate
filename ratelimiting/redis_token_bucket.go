@@ -3,10 +3,10 @@ package ratelimiting
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/jose-lico/go-plate/database"
+	"go.uber.org/zap"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -22,7 +22,7 @@ type RedisTokenBucket struct {
 
 func NewRedisTokenBucket(limiterID string, redis database.RedisStore, rate, capacity float64, keyExpiration time.Duration) RateLimiter {
 	if rate <= 0 || capacity <= 0 || keyExpiration <= 0 || redis == nil {
-		log.Fatalf("[FATAL] Invalid parameters for RedisTokenBucket `%s`", limiterID)
+		zap.L().Fatal("Invalid parameters for RedisTokenBucket", zap.String("ID", limiterID))
 	}
 
 	return &RedisTokenBucket{

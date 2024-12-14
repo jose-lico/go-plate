@@ -2,7 +2,6 @@ package post
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -15,11 +14,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
+	"go.uber.org/zap"
 )
 
 type Service struct {
-	store PostStore
-	redis database.RedisStore
+	store  PostStore
+	redis  database.RedisStore
+	logger *zap.Logger
 }
 
 func NewService(store PostStore, redis database.RedisStore) *Service {
@@ -93,7 +94,6 @@ func (s *Service) createPost(w http.ResponseWriter, r *http.Request) {
 		})
 
 		if err != nil {
-			log.Printf("[ERROR] Error creating post: %v", err)
 			utils.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
@@ -192,7 +192,6 @@ func (s *Service) deletePost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) getPosts(w http.ResponseWriter, r *http.Request) {
-	time.Sleep(2 * time.Second)
 	id := r.PathValue("id")
 	idAsInt, err := strconv.Atoi(id)
 

@@ -1,9 +1,10 @@
 package ratelimiting
 
 import (
-	"log"
 	"sync"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type slidingWindow struct {
@@ -26,12 +27,12 @@ type InMemorySlidingWindowCounter struct {
 
 func NewInMemorySlidingWindowCounter(rate int, windowSize, subWindowSize, cleanupInterval time.Duration) RateLimiter {
 	if rate <= 0 || windowSize <= 0 || subWindowSize <= 0 || cleanupInterval <= 0 {
-		log.Fatalf("[FATAL] Invalid parameters for InMemorySlidingWindowCounter")
+		zap.L().Fatal("Invalid parameters for InMemorySlidingWindowCounter")
 	}
 
 	numSubWindows := int(windowSize / subWindowSize)
 	if numSubWindows <= 0 {
-		log.Fatalf("[FATAL] windowSize must be greater than subWindowSize")
+		zap.L().Fatal("windowSize must be greater than subWindowSize")
 	}
 
 	sw := &InMemorySlidingWindowCounter{

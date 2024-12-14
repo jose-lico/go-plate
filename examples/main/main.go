@@ -4,56 +4,68 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/jose-lico/go-plate/api"
 	"github.com/jose-lico/go-plate/config"
 	"github.com/jose-lico/go-plate/database"
 	"github.com/jose-lico/go-plate/examples/internal/services/post"
 	"github.com/jose-lico/go-plate/examples/internal/services/user"
+	"github.com/jose-lico/go-plate/logger"
 	"github.com/jose-lico/go-plate/middleware"
-	"github.com/jose-lico/go-plate/utils"
-
-	_ "github.com/jose-lico/go-plate/docs"
+	"moul.io/chizap"
 
 	"github.com/go-chi/chi/v5"
 	httpSwagger "github.com/swaggo/http-swagger"
+	"go.uber.org/zap"
 )
 
 func main() {
-	// Load env variables for local dev
 	env := os.Getenv("ENV")
 
+	// Load env variables for local dev
 	if env == "LOCAL" {
-		err := utils.LoadEnvs()
+		err := godotenv.Load()
 		if err != nil {
-			log.Fatalf("[FATAL] Error loading .env: %v", err)
+			panic(fmt.Errorf("error loading env file: %w", err))
 		}
 	}
 
+	// Create zap logger
+	logger, err := logger.CreateLogger(env)
+	if err != nil {
+		panic(fmt.Errorf("error creating logger: %w", err))
+	}
+	zap.ReplaceGlobals(logger)
+	defer logger.Sync()
+
 	// Setup sql
 	sqlCFG := config.NewSQLConfig()
-	sql, err := database.NewSQLGormDB(sqlCFG)
+	sql, err := database.NewSQLGormDB(sqlCFG, logger)
 	if err != nil {
-		log.Fatalf("[FATAL] Error connecting to SQL: %v", err)
+		logger.Fatal("Error connecting to SQL", zap.Error(err))
 	}
 
 	// Setup redis
 	redisCFG := config.NewRedisConfig()
-	redis, err := database.NewRedis(redisCFG)
+	redis, err := database.NewRedis(redisCFG, logger)
 	if err != nil {
-		log.Fatalf("[FATAL] Error connecting to Redis: %v", err)
+		logger.Fatal("Error connecting to Redis", zap.Error(err))
 	}
 
 	// Setup api server
 	cfg := config.NewAPIConfig()
 	api := api.NewAPIServer(cfg)
 	api.UseDefaultMiddleware()
+	api.Router.Use(chizap.New(logger, &chizap.Opts{
+		WithReferer:   true,
+		WithUserAgent: true,
+	}))
 
 	subRouter := chi.NewRouter()
 	api.Router.Mount("/api", subRouter)
@@ -78,15 +90,22 @@ func main() {
 	))
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
+	sigterm := make(chan os.Signal, 1)
+	signal.Notify(sigterm, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
-		log.Printf("[TRACE] Starting API server on %s", api.Server.Addr)
+		<-sigterm
+		logger.Info("Received termination signal, shutting down...")
+		stop()
+	}()
+
+	go func() {
+		logger.Info("Starting API server", zap.String("Address", api.Server.Addr))
 		if err := api.Server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("[FATAL] Listen and serve error: %v", err)
+			logger.Fatal("Failed ListenAndServe()", zap.Error(err))
 		}
 
-		log.Println("[TRACE] Stopped serving new connections.")
+		logger.Info("Stopped serving new connections")
 	}()
 
 	<-ctx.Done()
@@ -95,8 +114,8 @@ func main() {
 	defer shutdownCancel()
 
 	if err := api.Server.Shutdown(shutdownContext); err != nil {
-		log.Printf("[ERROR] Server shutdown returned an error: %v\n", err)
+		logger.Error("Server shutdown returned an error", zap.Error(err))
 	}
 
-	log.Println("[TRACE] Server shutdown")
+	logger.Info("Server shutdown")
 }

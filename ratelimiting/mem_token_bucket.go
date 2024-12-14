@@ -1,9 +1,10 @@
 package ratelimiting
 
 import (
-	"log"
 	"sync"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type tokenBucket struct {
@@ -21,7 +22,7 @@ type InMemoryTokenBucket struct {
 
 func NewInMemoryTokenBucket(rate, capacity float64, cleanupInterval time.Duration) RateLimiter {
 	if rate <= 0 || capacity <= 0 || cleanupInterval <= 0 {
-		log.Fatalf("[FATAL] Invalid parameters for InMemoryTokenBucket")
+		zap.L().Fatal("Invalid parameters for InMemoryTokenBucket")
 	}
 
 	tb := &InMemoryTokenBucket{

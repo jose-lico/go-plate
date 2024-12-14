@@ -3,7 +3,6 @@ package user
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -104,7 +103,6 @@ func (s *Service) createUser(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		log.Printf("[ERROR] Error creating user: %v", err)
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}

@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"errors"
-	"log"
 	"net/http"
 	"time"
 
@@ -49,7 +48,6 @@ func ValidateUserMiddleware(store UserStore, redis database.RedisStore) func(nex
 
 						w.WriteHeader(http.StatusUnauthorized)
 					} else {
-						log.Printf("[ERROR] Error retrieving user: %v\n", err)
 						w.WriteHeader(http.StatusInternalServerError)
 					}
 				} else {

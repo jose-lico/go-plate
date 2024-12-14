@@ -37,6 +37,5 @@ func (s *APIServer) UseDefaultMiddleware() {
 
 	s.Router.Use(middleware.RequestID)
 	s.Router.Use(middleware.RealIP)
-	s.Router.Use(middleware.Logger)
 	s.Router.Use(middleware.Recoverer)
 }
