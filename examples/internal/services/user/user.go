@@ -65,12 +65,17 @@ func (s *Service) RegisterRoutes(v1 chi.Router) chi.Router {
 	return userRouter
 }
 
-// @Summary Creates a new user
-// @Accept json
-// @Param user body RegisterUserPayload true "User data"
-// @Success 201
-// @Failure 400
-// @Router /api/v1/users/register [post]
+// @Summary Create a new user
+// @Description Creates a new user by parsing the provided user data, validating it, and storing it in the database.
+// @Tags Users
+// @Accept  json
+// @Produce  json
+// @Param user body RegisterUserPayload true "User data for registration"
+// @Success 201 {object} models.User "User successfully created"
+// @Failure 400 {object} utils.ErrorResponse "Invalid input"
+// @Failure 409 {object} utils.ErrorResponse "User with this email already exists"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /users [post]
 func (s *Service) createUser(w http.ResponseWriter, r *http.Request) {
 	var user RegisterUserPayload
 	if err := utils.ParseJSON(r, &user); err != nil {

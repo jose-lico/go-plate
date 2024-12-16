@@ -22,6 +22,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
+
+	_ "github.com/jose-lico/go-plate/docs"
 )
 
 func main() {
