@@ -10,11 +10,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/jose-lico/go-plate/examples/internal/models"
+
+	"github.com/go-chi/chi/v5"
 )
 
-func TestUserService(t *testing.T) {
+func TestUserService_CreateUser(t *testing.T) {
 	store := &MockUserStore{}
 	cache := &MockCacheStore{}
 
@@ -44,7 +45,7 @@ func TestUserService(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			req, err := http.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(marshalled))
+			req, err := http.NewRequest(http.MethodPost, "/users/register", bytes.NewBuffer(marshalled))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -52,13 +53,61 @@ func TestUserService(t *testing.T) {
 			rr := httptest.NewRecorder()
 			router := chi.NewRouter()
 
-			router.Post("/users", service.createUser)
+			router.Post("/users/register", service.createUser)
 
 			router.ServeHTTP(rr, req)
 
 			if rr.Code != tc.expectedStatus {
 				t.Errorf("expected status code %d, got %d", tc.expectedStatus, rr.Code)
 			}
+		})
+	}
+}
+
+func TestUserService_LoginUser(t *testing.T) {
+	store := &MockUserStore{}
+	cache := &MockCacheStore{}
+	service := NewService(store, cache)
+
+	loginUserTests := []struct {
+		name           string
+		payload        LoginUserPayload
+		expectedStatus int
+		expectedBody   string // Optional: to validate response content
+	}{
+		{"No Email", LoginUserPayload{Password: "MyPassword"}, http.StatusBadRequest, "email is required"},
+		{"No Password", LoginUserPayload{Email: "example@email.com"}, http.StatusBadRequest, "password is required"},
+		{"Invalid Email", LoginUserPayload{Email: "notanemail", Password: "MyPassword"}, http.StatusBadRequest, "invalid credentials"},
+		{"User Not Found", LoginUserPayload{Email: "notfound@email.com", Password: "MyPassword"}, http.StatusUnauthorized, "invalid credentials"},
+		{"Invalid Password", LoginUserPayload{Email: "example@email.com", Password: "WrongPassword"}, http.StatusUnauthorized, "invalid credentials"},
+		{"Successful Login", LoginUserPayload{Email: "example@email.com", Password: "MyPassword"}, http.StatusOK, ""},
+	}
+
+	for _, tc := range loginUserTests {
+		t.Run(tc.name, func(t *testing.T) {
+			marshalled, err := json.Marshal(tc.payload)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			req, err := http.NewRequest(http.MethodPost, "/users/login", bytes.NewBuffer(marshalled))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			rr := httptest.NewRecorder()
+			router := chi.NewRouter()
+
+			router.Post("/users/login", service.loginUser)
+			router.ServeHTTP(rr, req)
+
+			if rr.Code != tc.expectedStatus {
+				t.Errorf("expected status code %d, got %d", tc.expectedStatus, rr.Code)
+			}
+
+			// if tc.expectedBody != "" && !strings.Contains(rr.Body.String(), tc.expectedBody) {
+			// 	t.Errorf("expected response body to contain %q, got %q", tc.expectedBody, rr.Body.String())
+			// }
 		})
 	}
 }
@@ -74,6 +123,7 @@ func (s *MockUserStore) CreateUser(user *models.User) (*models.User, error) {
 func (s *MockUserStore) GetUserByEmail(email string) (*models.User, error) {
 	if email == "example@email.com" {
 		u := &models.User{}
+		u.Password = "$2a$10$ZTN4HGWy6QeenPN2X1Kxfe32u/6kmlI37ndvh0raGFjBeYTroHt/m"
 		u.ID = 1
 		return u, nil
 	}
