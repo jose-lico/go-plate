@@ -14,13 +14,11 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
-	"go.uber.org/zap"
 )
 
 type Service struct {
-	store  PostStore
-	redis  database.RedisStore
-	logger *zap.Logger
+	store PostStore
+	redis database.RedisStore
 }
 
 func NewService(store PostStore, redis database.RedisStore) *Service {

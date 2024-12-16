@@ -4,9 +4,11 @@ import (
 	"net/http"
 
 	"github.com/jose-lico/go-plate/config"
+	"github.com/jose-lico/go-plate/middleware"
+	"go.uber.org/zap"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/cors"
 )
 
@@ -23,7 +25,20 @@ func NewAPIServer(cfg *config.APIConfig) *APIServer {
 	return server
 }
 
-func (s *APIServer) UseDefaultMiddleware() {
+func (s *APIServer) UseCORS() {
+	cors := cors.New(cors.Options{
+		AllowedOrigins:   s.cfg.AllowedOrigins,
+		AllowedMethods:   s.cfg.AllowedMethods,
+		AllowedHeaders:   s.cfg.AllowedHeaders,
+		ExposedHeaders:   s.cfg.AllowedHeaders,
+		AllowCredentials: s.cfg.AllowCredentials,
+		MaxAge:           s.cfg.MaxAge,
+	})
+
+	s.Router.Use(cors.Handler)
+}
+
+func (s *APIServer) UseDefaultMiddleware(env string, logger *zap.Logger) {
 	cors := cors.New(cors.Options{
 		AllowedOrigins:   s.cfg.AllowedOrigins,
 		AllowedMethods:   s.cfg.AllowedMethods,
@@ -35,7 +50,12 @@ func (s *APIServer) UseDefaultMiddleware() {
 
 	s.Router.Use(cors.Handler)
 
-	s.Router.Use(middleware.RequestID)
-	s.Router.Use(middleware.RealIP)
-	s.Router.Use(middleware.Recoverer)
+	s.Router.Use(chiMiddleware.RequestID)
+	s.Router.Use(chiMiddleware.RealIP)
+	if env == "LOCAL" {
+		s.Router.Use(middleware.ZapLoggerMiddlwareDev(logger))
+	} else {
+		s.Router.Use(middleware.ZapLoggerMiddlwareProd(logger))
+	}
+	s.Router.Use(chiMiddleware.Recoverer)
 }

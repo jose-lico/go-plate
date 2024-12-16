@@ -12,7 +12,7 @@ import (
 func main() {
 	cfg := config.NewAPIConfig()
 	api := api.NewAPIServer(cfg)
-	api.UseDefaultMiddleware()
+	// api.UseDefaultMiddleware()
 
 	api.Router.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hello World!!!")

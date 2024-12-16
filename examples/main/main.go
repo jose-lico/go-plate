@@ -18,7 +18,6 @@ import (
 	"github.com/jose-lico/go-plate/examples/internal/services/user"
 	"github.com/jose-lico/go-plate/logger"
 	"github.com/jose-lico/go-plate/middleware"
-	"moul.io/chizap"
 
 	"github.com/go-chi/chi/v5"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -61,11 +60,7 @@ func main() {
 	// Setup api server
 	cfg := config.NewAPIConfig()
 	api := api.NewAPIServer(cfg)
-	api.UseDefaultMiddleware()
-	api.Router.Use(chizap.New(logger, &chizap.Opts{
-		WithReferer:   true,
-		WithUserAgent: true,
-	}))
+	api.UseDefaultMiddleware(env, logger)
 
 	subRouter := chi.NewRouter()
 	api.Router.Mount("/api", subRouter)
