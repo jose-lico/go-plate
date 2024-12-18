@@ -1,0 +1,103 @@
+[
+    {
+      "name": "No Email",
+      "payload": {
+        "Email": "",
+        "Password": "MyPassword",
+        "Name": "José"
+      },
+      "expectedStatus": 400,
+      "expectedBody": "{\"error\":\"invalid payload: Key: 'RegisterUserPayload.Email' Error:Field validation for 'Email' failed on the 'required' tag\"}\n"
+    },
+    {
+      "name": "Invalid email",
+      "payload": {
+        "Email": "abcddas",
+        "Password": "MyPassword",
+        "Name": "José"
+      },
+      "expectedStatus": 400,
+      "expectedBody": "{\"error\":\"invalid payload: Key: 'RegisterUserPayload.Email' Error:Field validation for 'Email' failed on the 'email' tag\"}\n"
+    },
+    {
+      "name": "Email in use",
+      "payload": {
+        "Email": "example@email.com",
+        "Password": "MyPassword",
+        "Name": "José"
+      },
+      "expectedStatus": 409,
+      "expectedBody": "{\"error\":\"user with email example@email.com already exists\"}\n"
+    },
+    {
+      "name": "No Password",
+      "payload": {
+        "Email": "example2@email.com",
+        "Password": "",
+        "Name": "José"
+      },
+      "expectedStatus": 400,
+      "expectedBody": "{\"error\":\"invalid payload: Key: 'RegisterUserPayload.Password' Error:Field validation for 'Password' failed on the 'required' tag\"}\n"
+    },
+    {
+      "name": "Short Password",
+      "payload": {
+        "Email": "example2@email.com",
+        "Password": "MyPass",
+        "Name": "José"
+      },
+      "expectedStatus": 400,
+      "expectedBody": "{\"error\":\"invalid payload: Key: 'RegisterUserPayload.Password' Error:Field validation for 'Password' failed on the 'min' tag\"}\n"
+    },
+    {
+      "name": "Long Password",
+      "payload": {
+        "Email": "example2@email.com",
+        "Password": "MyPassworddddddddddddd",
+        "Name": "José"
+      },
+      "expectedStatus": 400,
+      "expectedBody": "{\"error\":\"invalid payload: Key: 'RegisterUserPayload.Password' Error:Field validation for 'Password' failed on the 'max' tag\"}\n"
+    },
+    {
+      "name": "No Name",
+      "payload": {
+        "Email": "example2@email.com",
+        "Password": "MyPassword",
+        "Name": ""
+      },
+      "expectedStatus": 400,
+      "expectedBody": "{\"error\":\"invalid payload: Key: 'RegisterUserPayload.Name' Error:Field validation for 'Name' failed on the 'required' tag\"}\n"
+    },
+    {
+      "name": "Name too short",
+      "payload": {
+        "Email": "example2@email.com",
+        "Password": "MyPassword",
+        "Name": "J"
+      },
+      "expectedStatus": 400,
+      "expectedBody": "{\"error\":\"invalid payload: Key: 'RegisterUserPayload.Name' Error:Field validation for 'Name' failed on the 'min' tag\"}\n"
+    },
+    {
+      "name": "Name too long",
+      "payload": {
+        "Email": "example2@email.com",
+        "Password": "MyPassword",
+        "Name": "Joséééééééééééééééééééééééééééééééééééééééééééééééé"
+      },
+      "expectedStatus": 400,
+      "expectedBody": "{\"error\":\"invalid payload: Key: 'RegisterUserPayload.Name' Error:Field validation for 'Name' failed on the 'max' tag\"}\n"
+    },
+    {
+      "name": "Create User",
+      "payload": {
+        "Email": "example2@email.com",
+        "Password": "MyPassword",
+        "Name": "José"
+      },
+      "expectedStatus": 201,
+      "expectedBody": ""
+    }
+  ]
+  

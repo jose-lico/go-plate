@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -16,31 +17,30 @@ import (
 )
 
 func TestUserService_CreateUser(t *testing.T) {
-	store := &MockUserStore{}
-	cache := &MockCacheStore{}
-
-	service := NewService(store, cache)
-
-	createUserTests := []struct {
-		name           string
-		payload        RegisterUserPayload
-		expectedStatus int
-	}{
-		{"No Email", RegisterUserPayload{Password: "MyPassword", Name: "José"}, http.StatusBadRequest},
-		{"Invalid email", RegisterUserPayload{Email: "abcddas", Password: "MyPassword", Name: "José"}, http.StatusBadRequest},
-		{"Email in use", RegisterUserPayload{Email: "example@email.com", Password: "MyPassword", Name: "José"}, http.StatusConflict},
-		{"No Password", RegisterUserPayload{Password: "MyPass", Name: "José"}, http.StatusBadRequest},
-		{"Short Password", RegisterUserPayload{Email: "example2@email.com", Password: "MyPass", Name: "José"}, http.StatusBadRequest},
-		{"Long Password", RegisterUserPayload{Email: "example2@email.com", Password: "MyPassworddddddddddddd", Name: "José"}, http.StatusBadRequest},
-		{"No Name", RegisterUserPayload{Email: "example2@email.com", Password: "MyPassword"}, http.StatusBadRequest},
-		{"Name too short", RegisterUserPayload{Email: "example2@email.com", Password: "MyPassword", Name: "J"}, http.StatusBadRequest},
-		{"Name too long", RegisterUserPayload{Email: "example2@email.com", Password: "MyPassword", Name: "JYfUKncJrcXXYkGOqJHUPyTaifKmDbIQE"}, http.StatusBadRequest},
-		{"Create User", RegisterUserPayload{Email: "example2@email.com", Password: "MyPassword", Name: "José"}, http.StatusCreated},
+	type createUserTestCase struct {
+		Name           string              `json:"name"`
+		Payload        RegisterUserPayload `json:"payload"`
+		ExpectedStatus int                 `json:"expectedStatus"`
+		ExpectedBody   string              `json:"expectedBody"`
 	}
 
-	for _, tc := range createUserTests {
-		t.Run(tc.name, func(t *testing.T) {
-			marshalled, err := json.Marshal(tc.payload)
+	testFile, err := os.ReadFile("testdata/create_user.json")
+	if err != nil {
+		t.Fatalf("Failed to read test data: %v", err)
+	}
+
+	var testData []createUserTestCase
+	if err := json.Unmarshal(testFile, &testData); err != nil {
+		t.Fatalf("Failed to parse test data: %v", err)
+	}
+
+	store := &MockUserStore{}
+	cache := &MockCacheStore{}
+	service := NewService(store, cache)
+
+	for _, tc := range testData {
+		t.Run(tc.Name, func(t *testing.T) {
+			marshalled, err := json.Marshal(tc.Payload)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -51,14 +51,17 @@ func TestUserService_CreateUser(t *testing.T) {
 			}
 
 			rr := httptest.NewRecorder()
-			router := chi.NewRouter()
-
-			router.Post("/users/register", service.createUser)
+			router := http.ServeMux{}
+			router.HandleFunc("POST /users/register", service.createUser)
 
 			router.ServeHTTP(rr, req)
 
-			if rr.Code != tc.expectedStatus {
-				t.Errorf("expected status code %d, got %d", tc.expectedStatus, rr.Code)
+			if rr.Code != tc.ExpectedStatus {
+				t.Errorf("expected status code %d, got %d", tc.ExpectedStatus, rr.Code)
+			}
+
+			if tc.ExpectedBody != "" && rr.Body.String() != tc.ExpectedBody {
+				t.Errorf("expected response body to contain %q, got %q", tc.ExpectedBody, rr.Body.String())
 			}
 		})
 	}
@@ -105,7 +108,7 @@ func TestUserService_LoginUser(t *testing.T) {
 				t.Errorf("expected status code %d, got %d", tc.expectedStatus, rr.Code)
 			}
 
-			// if tc.expectedBody != "" && !strings.Contains(rr.Body.String(), tc.expectedBody) {
+			// if tc.expectedBody != "" && rr.Body.String() != tc.expectedBody {
 			// 	t.Errorf("expected response body to contain %q, got %q", tc.expectedBody, rr.Body.String())
 			// }
 		})
