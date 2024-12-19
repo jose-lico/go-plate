@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jose-lico/go-plate/auth"
 	"github.com/jose-lico/go-plate/examples/internal/models"
 )
 
@@ -120,8 +121,13 @@ func (s *MockUserStore) CreateUser(user *models.User) (*models.User, error) {
 func (s *MockUserStore) GetUserByEmail(email string) (*models.User, error) {
 	if email == "example@email.com" {
 		u := &models.User{}
-		u.Password = "$2a$10$ZTN4HGWy6QeenPN2X1Kxfe32u/6kmlI37ndvh0raGFjBeYTroHt/m"
 		u.ID = 1
+		var err error
+		u.Password, err = auth.HashPassword("MyPassword")
+		if err != nil {
+			return nil, err
+		}
+
 		return u, nil
 	}
 
