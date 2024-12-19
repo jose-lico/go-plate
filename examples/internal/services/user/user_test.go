@@ -13,6 +13,7 @@ import (
 
 	"github.com/jose-lico/go-plate/auth"
 	"github.com/jose-lico/go-plate/examples/internal/models"
+	"go.uber.org/zap"
 )
 
 type testCase struct {
@@ -35,7 +36,7 @@ func TestUserService_CreateUser(t *testing.T) {
 
 	store := &MockUserStore{}
 	cache := &MockCacheStore{}
-	service := NewService(store, cache)
+	service := NewService(zap.NewExample(), store, cache)
 
 	for _, tc := range testData {
 		t.Run(tc.Name, func(t *testing.T) {
@@ -79,7 +80,7 @@ func TestUserService_LoginUser(t *testing.T) {
 
 	store := &MockUserStore{}
 	cache := &MockCacheStore{}
-	service := NewService(store, cache)
+	service := NewService(zap.NewExample(), store, cache)
 
 	for _, tc := range testData {
 		t.Run(tc.Name, func(t *testing.T) {

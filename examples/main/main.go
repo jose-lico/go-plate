@@ -75,11 +75,11 @@ func main() {
 	v2Router.Use(middleware.VersionURLMiddleware("v2"))
 
 	userStore := user.NewStore(sql)
-	userService := user.NewService(userStore, redis)
+	userService := user.NewService(logger, userStore, redis)
 	userRouter := userService.RegisterRoutes(v1Router)
 
 	postStore := post.NewStore(sql)
-	postServer := post.NewService(postStore, redis)
+	postServer := post.NewService(logger, postStore, redis)
 	postServer.RegisterRoutes(v1Router, v2Router, userRouter)
 
 	api.Router.Get("/swagger/*", httpSwagger.Handler(

@@ -14,18 +14,21 @@ import (
 	"github.com/jose-lico/go-plate/middleware"
 	"github.com/jose-lico/go-plate/ratelimiting"
 	"github.com/jose-lico/go-plate/utils"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 )
 
 type Service struct {
-	store UserStore
-	redis database.RedisStore
+	logger *zap.Logger
+	store  UserStore
+	redis  database.RedisStore
 }
 
-func NewService(store UserStore, redis database.RedisStore) *Service {
-	return &Service{store: store, redis: redis}
+func NewService(logger *zap.Logger, store UserStore, redis database.RedisStore) *Service {
+	return &Service{logger: logger, store: store, redis: redis}
 }
 
 func (s *Service) RegisterRoutes(v1 chi.Router) chi.Router {
@@ -41,13 +44,6 @@ func (s *Service) RegisterRoutes(v1 chi.Router) chi.Router {
 
 	userRouter.Group(func(r chi.Router) {
 		r.Use(middleware.SessionMiddleware(s.redis))
-
-		/*
-			Validating the user in the DB defies the purpose of using a cache like
-			redis for session management, ideally the session in the redis cache would be
-			invalidated correctly if the user was for example, banned.
-		*/
-		r.Use(ValidateUserMiddleware(s.store, s.redis))
 
 		r.Get("/secret", func(w http.ResponseWriter, r *http.Request) {
 
@@ -98,7 +94,8 @@ func (s *Service) createUser(w http.ResponseWriter, r *http.Request) {
 
 	hashedPassword, err := auth.HashPassword(user.Password)
 	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, err)
+		s.logger.Error("Error hashing password for createUser", zap.Error(err))
+		utils.WriteError(w, http.StatusInternalServerError, utils.ErrGenericInternalError)
 		return
 	}
 
@@ -109,7 +106,8 @@ func (s *Service) createUser(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, err)
+		s.logger.Error("Error creating user", zap.Error(err))
+		utils.WriteError(w, http.StatusInternalServerError, utils.ErrGenericInternalError)
 		return
 	}
 
@@ -132,8 +130,15 @@ func (s *Service) loginUser(w http.ResponseWriter, r *http.Request) {
 	// These error messages could allow for user enumeration and should be more generic
 	u, err := s.store.GetUserByEmail(user.Email)
 	if err != nil {
-		utils.WriteError(w, http.StatusUnauthorized, errors.New("user not found"))
-		return
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			utils.WriteError(w, http.StatusUnauthorized, err)
+			return
+		default:
+			s.logger.Error("Error getting user from store", zap.Error(err), zap.Any("User", user))
+			utils.WriteError(w, http.StatusInternalServerError, utils.ErrGenericInternalError)
+			return
+		}
 	}
 
 	if !auth.ComparePasswords(u.Password, []byte(user.Password)) {
@@ -147,7 +152,8 @@ func (s *Service) loginUser(w http.ResponseWriter, r *http.Request) {
 func (s *Service) generateSession(w http.ResponseWriter, r *http.Request, u *models.User, status int) {
 	sessionToken, err := auth.GenerateToken()
 	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("could not generate session token"))
+		s.logger.Error("Error generating session token", zap.Error(err))
+		utils.WriteError(w, http.StatusInternalServerError, utils.ErrGenericInternalError)
 	}
 
 	duration := 24 * time.Hour
@@ -163,7 +169,8 @@ func (s *Service) generateSession(w http.ResponseWriter, r *http.Request, u *mod
 
 	marshalled, err := json.Marshal(session)
 	if err != nil {
-		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("failed to marshall session struct"))
+		s.logger.Error("Failed to marshall session", zap.Error(err))
+		utils.WriteError(w, http.StatusInternalServerError, utils.ErrGenericInternalError)
 		return
 	}
 

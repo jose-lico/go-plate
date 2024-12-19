@@ -39,7 +39,7 @@ func (s *Store) GetUserByEmail(email string) (*models.User, error) {
 	result := s.db.Where("LOWER(email) = LOWER(?)", email).First(&user)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("user does not exist: %w", result.Error)
+			return nil, fmt.Errorf("user not found: %w", result.Error)
 		}
 		return nil, fmt.Errorf("failed to find user by email: %w", result.Error)
 	}

@@ -11,6 +11,10 @@ import (
 	"go.uber.org/zap"
 )
 
+var (
+	ErrGenericInternalError = errors.New("an error occurred while processing the request")
+)
+
 var Validate = validator.New()
 
 func ParseJSON(r *http.Request, v any) error {

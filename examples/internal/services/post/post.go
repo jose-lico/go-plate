@@ -11,18 +11,20 @@ import (
 	"github.com/jose-lico/go-plate/middleware"
 	"github.com/jose-lico/go-plate/ratelimiting"
 	"github.com/jose-lico/go-plate/utils"
+	"go.uber.org/zap"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 )
 
 type Service struct {
-	store PostStore
-	redis database.RedisStore
+	logger *zap.Logger
+	store  PostStore
+	redis  database.RedisStore
 }
 
-func NewService(store PostStore, redis database.RedisStore) *Service {
-	return &Service{store: store, redis: redis}
+func NewService(logger *zap.Logger, store PostStore, redis database.RedisStore) *Service {
+	return &Service{logger: logger, store: store, redis: redis}
 }
 
 func (s *Service) RegisterRoutes(v1 chi.Router, v2 chi.Router, userRouter chi.Router) {
@@ -92,6 +94,7 @@ func (s *Service) createPost(w http.ResponseWriter, r *http.Request) {
 		})
 
 		if err != nil {
+			s.logger.Error("Error creating post", zap.Error(err), zap.Any("Post", post))
 			utils.WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
@@ -122,7 +125,7 @@ func (s *Service) updatePost(w http.ResponseWriter, r *http.Request) {
 		postIDAsInt, err := strconv.Atoi(postID)
 
 		if err != nil {
-			utils.WriteError(w, http.StatusInternalServerError, err)
+			utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("%s is not a valid id: %w", postID, err))
 			return
 		}
 
@@ -132,7 +135,8 @@ func (s *Service) updatePost(w http.ResponseWriter, r *http.Request) {
 			utils.WriteError(w, http.StatusNotFound, err)
 			return
 		} else if err != nil {
-			utils.WriteError(w, http.StatusInternalServerError, err)
+			s.logger.Error("Error getting post", zap.Error(err), zap.Any("Post", post))
+			utils.WriteError(w, http.StatusInternalServerError, utils.ErrGenericInternalError)
 			return
 		}
 
@@ -147,7 +151,8 @@ func (s *Service) updatePost(w http.ResponseWriter, r *http.Request) {
 		err = s.store.UpdatePost(post, update)
 
 		if err != nil {
-			utils.WriteError(w, http.StatusInternalServerError, err)
+			s.logger.Error("Error updating post", zap.Error(err), zap.Any("Post", post))
+			utils.WriteError(w, http.StatusInternalServerError, utils.ErrGenericInternalError)
 			return
 		}
 
@@ -169,7 +174,7 @@ func (s *Service) deletePost(w http.ResponseWriter, r *http.Request) {
 		postIDAsInt, err := strconv.Atoi(postID)
 
 		if err != nil {
-			utils.WriteError(w, http.StatusInternalServerError, err)
+			utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("%s is not a valid id: %w", postID, err))
 			return
 		}
 
@@ -180,7 +185,8 @@ func (s *Service) deletePost(w http.ResponseWriter, r *http.Request) {
 		} else if err == ErrUserNotAuthorized {
 			utils.WriteError(w, http.StatusForbidden, err)
 		} else if err != nil {
-			utils.WriteError(w, http.StatusInternalServerError, err)
+			s.logger.Error("Error deleting post", zap.Error(err), zap.Int("Post", postIDAsInt))
+			utils.WriteError(w, http.StatusInternalServerError, utils.ErrGenericInternalError)
 		}
 
 		w.WriteHeader(http.StatusNoContent)
@@ -194,9 +200,11 @@ func (s *Service) getPosts(w http.ResponseWriter, r *http.Request) {
 	idAsInt, err := strconv.Atoi(id)
 
 	if err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, err)
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("%s is not a valid id: %w", id, err))
 		return
 	}
+
+	// Could check here if user even exists to avoid returning empty list with a 200
 
 	var posts []models.Post
 
@@ -216,27 +224,17 @@ func (s *Service) getPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var responseData []PostResponsePayload
+	responseData := make([]PostResponsePayload, 0)
 	version := r.Context().Value(middleware.Version).(string)
 
 	for _, post := range posts {
 		payload := ModelToResponsePayload(&post)
-
 		// Pretend v1 does not support summaries
 		if version == "v1" {
 			payload.Summary = ""
 		}
-
 		responseData = append(responseData, payload)
 	}
 
-	if len(responseData) > 0 {
-		w.WriteHeader(http.StatusOK)
-	} else {
-		w.WriteHeader(http.StatusNotFound)
-	}
-
-	utils.WriteJSON(w, http.StatusOK, map[string]interface{}{
-		"posts": responseData,
-	})
+	utils.WriteJSON(w, http.StatusOK, map[string]interface{}{"posts": responseData})
 }
