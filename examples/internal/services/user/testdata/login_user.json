@@ -6,7 +6,7 @@
         "Password": "MyPassword"
       },
       "expectedStatus": 400,
-      "expectedBody": ""
+      "expectedBody": "{\"error\":\"invalid payload: Key: 'LoginUserPayload.Email' Error:Field validation for 'Email' failed on the 'required' tag\"}\n"
     },
     {
       "name": "No Password",
@@ -15,7 +15,7 @@
         "Password": ""
       },
       "expectedStatus": 400,
-      "expectedBody": ""
+      "expectedBody": "{\"error\":\"invalid payload: Key: 'LoginUserPayload.Password' Error:Field validation for 'Password' failed on the 'required' tag\"}\n"
     },
     {
       "name": "Invalid Email",
@@ -24,7 +24,7 @@
         "Password": "MyPassword"
       },
       "expectedStatus": 400,
-      "expectedBody": ""
+      "expectedBody": "{\"error\":\"invalid payload: Key: 'LoginUserPayload.Email' Error:Field validation for 'Email' failed on the 'email' tag\"}\n"
     },
     {
       "name": "User Not Found",
@@ -33,7 +33,7 @@
         "Password": "MyPassword"
       },
       "expectedStatus": 401,
-      "expectedBody": ""
+      "expectedBody": "{\"error\":\"user not found\"}\n"
     },
     {
       "name": "Invalid Password",
@@ -42,7 +42,7 @@
         "Password": "WrongPassword"
       },
       "expectedStatus": 401,
-      "expectedBody": ""
+      "expectedBody": "{\"error\":\"wrong password\"}\n"
     },
     {
       "name": "Successful Login",

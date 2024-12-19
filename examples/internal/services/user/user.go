@@ -2,6 +2,7 @@ package user
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -128,14 +129,15 @@ func (s *Service) loginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// These error messages could allow for user enumeration and should be more generic
 	u, err := s.store.GetUserByEmail(user.Email)
 	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
+		utils.WriteError(w, http.StatusUnauthorized, errors.New("user not found"))
 		return
 	}
 
 	if !auth.ComparePasswords(u.Password, []byte(user.Password)) {
-		w.WriteHeader(http.StatusUnauthorized)
+		utils.WriteError(w, http.StatusUnauthorized, errors.New("wrong password"))
 		return
 	}
 

@@ -12,24 +12,22 @@ import (
 	"time"
 
 	"github.com/jose-lico/go-plate/examples/internal/models"
-
-	"github.com/go-chi/chi/v5"
 )
 
-func TestUserService_CreateUser(t *testing.T) {
-	type createUserTestCase struct {
-		Name           string              `json:"name"`
-		Payload        RegisterUserPayload `json:"payload"`
-		ExpectedStatus int                 `json:"expectedStatus"`
-		ExpectedBody   string              `json:"expectedBody"`
-	}
+type testCase struct {
+	Name           string              `json:"name"`
+	Payload        RegisterUserPayload `json:"payload"`
+	ExpectedStatus int                 `json:"expectedStatus"`
+	ExpectedBody   string              `json:"expectedBody"`
+}
 
+func TestUserService_CreateUser(t *testing.T) {
 	testFile, err := os.ReadFile("testdata/create_user.json")
 	if err != nil {
 		t.Fatalf("Failed to read test data: %v", err)
 	}
 
-	var testData []createUserTestCase
+	var testData []testCase
 	if err := json.Unmarshal(testFile, &testData); err != nil {
 		t.Fatalf("Failed to parse test data: %v", err)
 	}
@@ -68,27 +66,23 @@ func TestUserService_CreateUser(t *testing.T) {
 }
 
 func TestUserService_LoginUser(t *testing.T) {
+	testFile, err := os.ReadFile("testdata/login_user.json")
+	if err != nil {
+		t.Fatalf("Failed to read test data: %v", err)
+	}
+
+	var testData []testCase
+	if err := json.Unmarshal(testFile, &testData); err != nil {
+		t.Fatalf("Failed to parse test data: %v", err)
+	}
+
 	store := &MockUserStore{}
 	cache := &MockCacheStore{}
 	service := NewService(store, cache)
 
-	loginUserTests := []struct {
-		name           string
-		payload        LoginUserPayload
-		expectedStatus int
-		expectedBody   string // Optional: to validate response content
-	}{
-		{"No Email", LoginUserPayload{Password: "MyPassword"}, http.StatusBadRequest, "email is required"},
-		{"No Password", LoginUserPayload{Email: "example@email.com"}, http.StatusBadRequest, "password is required"},
-		{"Invalid Email", LoginUserPayload{Email: "notanemail", Password: "MyPassword"}, http.StatusBadRequest, "invalid credentials"},
-		{"User Not Found", LoginUserPayload{Email: "notfound@email.com", Password: "MyPassword"}, http.StatusUnauthorized, "invalid credentials"},
-		{"Invalid Password", LoginUserPayload{Email: "example@email.com", Password: "WrongPassword"}, http.StatusUnauthorized, "invalid credentials"},
-		{"Successful Login", LoginUserPayload{Email: "example@email.com", Password: "MyPassword"}, http.StatusOK, ""},
-	}
-
-	for _, tc := range loginUserTests {
-		t.Run(tc.name, func(t *testing.T) {
-			marshalled, err := json.Marshal(tc.payload)
+	for _, tc := range testData {
+		t.Run(tc.Name, func(t *testing.T) {
+			marshalled, err := json.Marshal(tc.Payload)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -99,18 +93,18 @@ func TestUserService_LoginUser(t *testing.T) {
 			}
 
 			rr := httptest.NewRecorder()
-			router := chi.NewRouter()
+			router := http.ServeMux{}
+			router.HandleFunc("POST /users/login", service.loginUser)
 
-			router.Post("/users/login", service.loginUser)
 			router.ServeHTTP(rr, req)
 
-			if rr.Code != tc.expectedStatus {
-				t.Errorf("expected status code %d, got %d", tc.expectedStatus, rr.Code)
+			if rr.Code != tc.ExpectedStatus {
+				t.Errorf("expected status code %d, got %d", tc.ExpectedStatus, rr.Code)
 			}
 
-			// if tc.expectedBody != "" && rr.Body.String() != tc.expectedBody {
-			// 	t.Errorf("expected response body to contain %q, got %q", tc.expectedBody, rr.Body.String())
-			// }
+			if tc.ExpectedBody != "" && rr.Body.String() != tc.ExpectedBody {
+				t.Errorf("expected response body to contain %q, got %q", tc.ExpectedBody, rr.Body.String())
+			}
 		})
 	}
 }
