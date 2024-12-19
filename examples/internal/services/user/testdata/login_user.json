@@ -1,0 +1,57 @@
+[
+    {
+      "name": "No Email",
+      "payload": {
+        "Email": "",
+        "Password": "MyPassword"
+      },
+      "expectedStatus": 400,
+      "expectedBody": ""
+    },
+    {
+      "name": "No Password",
+      "payload": {
+        "Email": "example@email.com",
+        "Password": ""
+      },
+      "expectedStatus": 400,
+      "expectedBody": ""
+    },
+    {
+      "name": "Invalid Email",
+      "payload": {
+        "Email": "notanemail",
+        "Password": "MyPassword"
+      },
+      "expectedStatus": 400,
+      "expectedBody": ""
+    },
+    {
+      "name": "User Not Found",
+      "payload": {
+        "Email": "notfound@email.com",
+        "Password": "MyPassword"
+      },
+      "expectedStatus": 401,
+      "expectedBody": ""
+    },
+    {
+      "name": "Invalid Password",
+      "payload": {
+        "Email": "example@email.com",
+        "Password": "WrongPassword"
+      },
+      "expectedStatus": 401,
+      "expectedBody": ""
+    },
+    {
+      "name": "Successful Login",
+      "payload": {
+        "Email": "example@email.com",
+        "Password": "MyPassword"
+      },
+      "expectedStatus": 200,
+      "expectedBody": ""
+    }
+  ]
+  
