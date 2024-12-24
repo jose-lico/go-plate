@@ -15,6 +15,10 @@ var (
 	ErrGenericInternalError = errors.New("an error occurred while processing the request")
 )
 
+type ErrorResponse struct {
+	Error string `json:"error" example:"Error message"`
+}
+
 var Validate = validator.New()
 
 func ParseJSON(r *http.Request, v any) error {
@@ -27,7 +31,7 @@ func ParseJSON(r *http.Request, v any) error {
 }
 
 func WriteError(w http.ResponseWriter, status int, err error) {
-	WriteJSON(w, status, map[string]string{"error": err.Error()})
+	WriteJSON(w, status, &ErrorResponse{Error: err.Error()})
 }
 
 func WriteJSON(w http.ResponseWriter, status int, v any) error {

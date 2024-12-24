@@ -7,9 +7,9 @@ import (
 )
 
 type PostPayload struct {
-	Title   string `json:"title" validate:"required,max=255"`
-	Summary string `json:"summary"` // Only v2 has a summary
-	Content string `json:"content" validate:"required,max=1000"`
+	Title   string `json:"title" validate:"required,max=255" example:"Post title"`
+	Summary string `json:"summary" example:"Post summary"` // Only v2 has a summary
+	Content string `json:"content" validate:"required,max=1000" example:"This is a post with some content"`
 }
 
 type PostResponsePayload struct {
@@ -20,7 +20,7 @@ type PostResponsePayload struct {
 }
 
 type EditPostPayload struct {
-	Content string `json:"content" validate:"required,max=1000"`
+	Content string `json:"content" validate:"required,max=1000" example:"This is a post with some edited content"`
 }
 
 func ModelToResponsePayload(p *models.Post) PostResponsePayload {

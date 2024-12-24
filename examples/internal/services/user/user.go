@@ -63,16 +63,17 @@ func (s *Service) RegisterRoutes(v1 chi.Router) chi.Router {
 }
 
 // @Summary Create a new user
-// @Description Creates a new user by parsing the provided user data, validating it, and storing it in the database.
+// @Description Creates a new user by parsing the provided user data, validating it, and storing it in the database. Returns a cookie on successful creation.
 // @Tags Users
 // @Accept  json
 // @Produce  json
 // @Param user body RegisterUserPayload true "User data for registration"
-// @Success 201 {object} models.User "User successfully created"
-// @Failure 400 {object} utils.ErrorResponse "Invalid input"
-// @Failure 409 {object} utils.ErrorResponse "User with this email already exists"
-// @Failure 500 {object} utils.ErrorResponse "Internal server error"
-// @Router /users [post]
+// @Success 201 "User created successfully"
+// @Header 201 {string} Set-Cookie "session=value; Path=/; HttpOnly"
+// @Failure 400 {object} utils.ErrorResponse "Invalid request payload"
+// @Failure 409 {object} utils.ErrorResponse "User with provided email already exists"
+// @Failure 500 {object} utils.ErrorResponse "Interal server error"
+// @Router /v1/users/register [post]
 func (s *Service) createUser(w http.ResponseWriter, r *http.Request) {
 	var user RegisterUserPayload
 	if err := utils.ParseJSON(r, &user); err != nil {
@@ -114,6 +115,17 @@ func (s *Service) createUser(w http.ResponseWriter, r *http.Request) {
 	s.generateSession(w, r, u, http.StatusCreated)
 }
 
+// @Summary Login user
+// @Description Authenticates a user and creates a session
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param user body LoginUserPayload true "Login credentials"
+// @Success 200 "Login successful"
+// @Failure 400 {object} utils.ErrorResponse "Invalid request payload"
+// @Failure 401 {object} utils.ErrorResponse "Invalid credentials"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /v1/users/login [post]
 func (s *Service) loginUser(w http.ResponseWriter, r *http.Request) {
 	var user LoginUserPayload
 	if err := utils.ParseJSON(r, &user); err != nil {

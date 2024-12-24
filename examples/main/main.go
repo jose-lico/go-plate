@@ -26,6 +26,11 @@ import (
 	_ "github.com/jose-lico/go-plate/docs"
 )
 
+// @title go-plate example API
+// @description This is an example API, that interacts with a postgres DB and redis cache.
+// @description It can create users, posts and handle sessions.
+// @description Posts can be viewed (limited to most recent post for unauthenticated users) and edited or deleted (only by their owner).
+// @BasePath /api
 func main() {
 	env := os.Getenv("ENV")
 

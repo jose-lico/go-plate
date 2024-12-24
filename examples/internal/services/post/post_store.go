@@ -17,7 +17,7 @@ var (
 type PostStore interface {
 	CreatePost(p *models.Post) (*models.Post, error)
 	GetPostByID(postID int) (*models.Post, error)
-	GetPosts(userId int, amount int) ([]models.Post, error)
+	GetPostsByUserID(userId int, amount int) ([]models.Post, error)
 	UpdatePost(post *models.Post, updates interface{}) error
 	DeletePost(postID, userID int) error
 }
@@ -54,7 +54,7 @@ func (s *Store) GetPostByID(postID int) (*models.Post, error) {
 	return &post, nil
 }
 
-func (s *Store) GetPosts(userId int, limit int) ([]models.Post, error) {
+func (s *Store) GetPostsByUserID(userId int, limit int) ([]models.Post, error) {
 	var posts []models.Post
 
 	err := s.db.Where("user_id = ?", userId).

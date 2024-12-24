@@ -61,6 +61,19 @@ func (s *Service) RegisterRoutes(v1 chi.Router, v2 chi.Router, userRouter chi.Ro
 	})
 }
 
+// @Summary Create a new post
+// @Description Creates a new post. V1 does not support post summaries.
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Security ApiCookieAuth
+// @Param post body PostPayload true "Post data for creation"
+// @Success 201 "Post created successfully"
+// @Failure 400 {object} utils.ErrorResponse "Invalid request payload"
+// @Failure 401 "Unauthorized"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /v1/posts [post]
+// @Router /v2/posts [post]
 func (s *Service) createPost(w http.ResponseWriter, r *http.Request) {
 	isAuthenticated := r.Context().Value(middleware.IsAuthenticated).(bool)
 
@@ -105,6 +118,21 @@ func (s *Service) createPost(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Update a post
+// @Description Updates an existing post. Only the post owner can perform this action.
+// @Tags Posts
+// @Accept json
+// @Produce json
+// @Security ApiCookieAuth
+// @Param id path int true "Post ID"
+// @Param post body EditPostPayload true "Post update payload"
+// @Success 204 "Post updated successfully"
+// @Failure 400 {object} utils.ErrorResponse "Invalid request payload"
+// @Failure 401 "Unauthorized"
+// @Failure 403 {object} utils.ErrorResponse "Forbidden - user is not the post owner"
+// @Failure 404 {object} utils.ErrorResponse "Post not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /v2/posts/{id} [patch]
 func (s *Service) updatePost(w http.ResponseWriter, r *http.Request) {
 	isAuthenticated := r.Context().Value(middleware.IsAuthenticated).(bool)
 
@@ -162,6 +190,18 @@ func (s *Service) updatePost(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Delete a post
+// @Description Deletes an existing post. Only the post owner can perform this action.
+// @Tags Posts
+// @Security ApiCookieAuth
+// @Param id path int true "Post ID"
+// @Success 204 "Post deleted successfully"
+// @Failure 400 {object} utils.ErrorResponse "Invalid request payload"
+// @Failure 401 "Unauthorized"
+// @Failure 403 {object} utils.ErrorResponse "Forbidden - user is not the post owner"
+// @Failure 404 {object} utils.ErrorResponse "Post not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /v2/posts/{id} [delete]
 func (s *Service) deletePost(w http.ResponseWriter, r *http.Request) {
 	isAuthenticated := r.Context().Value(middleware.IsAuthenticated).(bool)
 
@@ -195,6 +235,17 @@ func (s *Service) deletePost(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Get user's posts
+// @Description Retrieves posts for a specific user. Unauthenticated users can only see the latest post.
+// @Tags Posts
+// @Produce json
+// @Security ApiCookieAuth
+// @Param id path int true "User ID"
+// @Success 200 {object} map[string][]string "List of posts"
+// @Failure 400 {object} utils.ErrorResponse "Invalid request payload"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Router /v1/users/{id}/posts [get]
+// @Router /v2/users/{id}/posts [get]
 func (s *Service) getPosts(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	idAsInt, err := strconv.Atoi(id)
@@ -217,7 +268,7 @@ func (s *Service) getPosts(w http.ResponseWriter, r *http.Request) {
 		limit = 1
 	}
 
-	posts, err = s.store.GetPosts(idAsInt, limit)
+	posts, err = s.store.GetPostsByUserID(idAsInt, limit)
 
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
