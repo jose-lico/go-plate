@@ -12,7 +12,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.18.1
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/lib/pq v1.10.9
-	github.com/redis/go-redis/v9 v9.6.1
+	github.com/redis/go-redis/v9 v9.6.3
 	github.com/rs/cors v1.11.1
 	github.com/swaggo/http-swagger v1.3.4
 	go.uber.org/zap v1.27.0
